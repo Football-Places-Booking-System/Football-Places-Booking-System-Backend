@@ -1,8 +1,6 @@
 package hypercell.final_project.football_places_booking_system.model.db;
 
-import hypercell.final_project.football_places_booking_system.model.enums.UserRole;
-import hypercell.final_project.football_places_booking_system.model.enums.UserStatus;
-import jakarta.persistence.Column;
+import hypercell.final_project.football_places_booking_system.model.enums.PlaceType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -19,21 +17,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User extends BaseEntity {
+public class Place extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String username;
-
-    @Column(unique = true)
-    private String email;
-
-    private String password;
+    private String name;
+    private String location;
 
     @Enumerated(EnumType.STRING)
-    private UserRole role;
+    private PlaceType placeType;
 
-    @Enumerated(EnumType.STRING)
-    private UserStatus status;
+    private String imageUrl;
 }
