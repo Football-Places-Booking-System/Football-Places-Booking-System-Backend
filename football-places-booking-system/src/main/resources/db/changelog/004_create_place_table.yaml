@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0004
+      author: teamplayer
+      changes:
+        - createTable:
+            tableName: place
+            remarks: "Place table stores football fields/venues that can be booked. Includes location details, type (5-a-side, 7-a-side), and image reference."
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: location
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: place_type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                  remarks: "5-a-side, 7-a-side, etc."
+              - column:
+                  name: image_url
+                  type: VARCHAR(255)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
