@@ -5,9 +5,9 @@ spring:
     name: football-places-booking-system
 
   datasource:
-    url: jdbc:mysql://localhost:5432/postgres
-    username: footballPlayer
-    password: footballPlayer
+    url: jdbc:postgresql://localhost:5432/footballPlayer
+    username: postgres
+    password: Wpqjvkkzb123!
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
