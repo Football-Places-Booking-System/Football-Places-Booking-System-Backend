@@ -1,0 +1,51 @@
+package hypercell.final_project.football_places_booking_system.controller;
+
+import hypercell.final_project.football_places_booking_system.model.db.Place;
+import hypercell.final_project.football_places_booking_system.model.dto.PlaceDto;
+
+import hypercell.final_project.football_places_booking_system.service.PlaceService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+
+@RequestMapping("/api/place")
+public class PlaceController {
+
+    private final PlaceService placeService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Place> getPlaceById(@PathVariable Long id) {
+        Place place = placeService.getPlaceById(id);
+        return new ResponseEntity<>(place, HttpStatus.OK);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<Place>> getAllPlaces() {
+        List<Place> places = placeService.getAllPlaces();
+        return new ResponseEntity<>(places, HttpStatus.OK);
+    }
+
+    @PostMapping
+    public ResponseEntity<Place> create(@RequestBody PlaceDto placeDto) {
+        Place place = placeService.createPlace(placeDto);
+        return new ResponseEntity<>(place, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Place> updatePlace(@PathVariable Long id, @RequestBody Place updatedPlace) {
+        Place place = placeService.updatePlace(id, updatedPlace);
+        return new ResponseEntity<>(place, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePlace(@PathVariable Long id) {
+        placeService.deletePlace(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+}
