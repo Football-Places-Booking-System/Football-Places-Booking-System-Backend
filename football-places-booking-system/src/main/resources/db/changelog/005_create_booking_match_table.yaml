@@ -5,7 +5,7 @@ databaseChangeLog:
       changes:
         - createTable:
             tableName: booking_match
-            remarks: "BookingMatch table represents a scheduled match at a specific place and time. Links to the booking user, place, and team involved in the match."
+            remarks: "BookingMatch table represents a scheduled match at a specific place and time."
             columns:
               - column:
                   name: id

@@ -2,24 +2,18 @@ package hypercell.final_project.football_places_booking_system.model.db;
 
 import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Data
 public class TeamMember extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,14 +26,17 @@ public class TeamMember extends BaseEntity {
     private TeamStatus status;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "team_id")
+    @JoinColumn(name = "team_id", nullable = true)
     private Team team;
 
     @ManyToOne
-    @JoinColumn(name = "invited_by")
+    @JoinColumn(name = "invited_by", nullable = true)
     private User invitedBy;
+
+    @OneToMany(mappedBy = "creator")
+    private List<Team> createdTeams = new ArrayList<>();
 }

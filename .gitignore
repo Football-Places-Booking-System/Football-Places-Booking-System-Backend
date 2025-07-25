@@ -23,3 +23,10 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+.idea/compiler.xml
+/.idea
+.idea/misc.xml
+football-places-booking-system/src/main/resources/application.yml
+football-places-booking-system/src/main/resources/application.yml
+.idea/misc.xml
+/.idea
