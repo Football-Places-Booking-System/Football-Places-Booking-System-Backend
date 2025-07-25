@@ -47,6 +47,6 @@ public class BookingMatch extends BaseEntity {
     private Team team;
 
     // List of participants in the match.
-    @OneToMany(mappedBy = "bookingMatch", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MatchParticipant> participants = new ArrayList<>();
+//    @OneToMany(mappedBy = "bookingMatch", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<MatchParticipant> participants = new ArrayList<>();
 }
