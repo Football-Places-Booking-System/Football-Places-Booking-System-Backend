@@ -8,6 +8,8 @@ import hypercell.final_project.football_places_booking_system.service.Interfaces
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,10 +21,10 @@ public class TeamController {
     private final TeamService teamService;
     @PostMapping
     public ResponseEntity<TeamResponse> createTeam(
-            @RequestBody @Valid TeamCreationRequest request) {
-        TeamMember member = new TeamMember();
-        member.setId(1L);
-        TeamResponse response = teamService.createTeam(request, member.getId());
+            @RequestBody @Valid TeamCreationRequest request,
+            @AuthenticationPrincipal User user) {
+       // Long creatorId = Long.parseLong(user.getUsername());
+        TeamResponse response = teamService.createTeam(request, user.getId());
         return ResponseEntity.ok(response);
     }
     @GetMapping("/{id}")
@@ -33,5 +35,29 @@ public class TeamController {
     @GetMapping
     public List<TeamResponse> getAllTeams() {
         return teamService.getAllTeams();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TeamResponse> updateTeam(
+            @PathVariable Long id,
+            @RequestBody @Valid TeamCreationRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = (User) userDetails;
+        TeamResponse response = teamService.updateTeam(id, request, user.getId());
+        return ResponseEntity.ok(response);
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTeam(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = (User) userDetails;
+        teamService.deleteTeam(id, user.getId());
+        return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/my-teams")
+    public ResponseEntity<List<TeamResponse>> getUserTeams(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = (User) userDetails;
+        return ResponseEntity.ok(teamService.getTeamsByUser(user.getId()));
     }
 }

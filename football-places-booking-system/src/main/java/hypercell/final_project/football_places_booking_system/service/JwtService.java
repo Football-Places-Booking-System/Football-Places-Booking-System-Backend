@@ -2,6 +2,7 @@ package hypercell.final_project.football_places_booking_system.service;
 
 import java.util.Date;
 
+import hypercell.final_project.football_places_booking_system.model.db.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public class JwtService {
         return Jwts.builder()
             .setSubject(userDetails.getUsername())
             .claim("authorities", userDetails.getAuthorities())
+                .claim("userId", ((User) userDetails).getId())
             .setIssuedAt(new Date(System.currentTimeMillis()))
             .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
             .signWith(SignatureAlgorithm.HS256, SECRET_KEY)

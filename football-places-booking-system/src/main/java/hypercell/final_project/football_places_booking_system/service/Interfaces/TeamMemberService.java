@@ -19,7 +19,6 @@ public interface TeamMemberService {
     TeamMemberResponse updateTeamMember(TeamMemberUpdateRequest teamMemberUpdateRequest);
     TeamMemberResponse getTeamMemberById(Long id);
     void deleteTeamMember(Long id);
-
 }
 
 
