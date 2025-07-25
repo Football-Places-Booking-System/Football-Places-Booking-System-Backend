@@ -9,14 +9,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
-import lombok.Setter;
 
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 @Getter
-@Setter
 public abstract class BaseEntity {
     @CreatedDate
-    @Column(name = "created_at", updatable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 }

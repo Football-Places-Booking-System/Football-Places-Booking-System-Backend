@@ -1,0 +1,24 @@
+server:
+  port: 8080
+  
+spring:
+  application:
+    name: football-places-booking-system
+
+  datasource:
+      url: jdbc:postgresql://localhost:5432/football-booking-system
+      username: postgres
+      password: o5002d6b71a
+      driver-class-name: org.postgresql.Driver
+  jpa:
+      hibernate:
+          ddl-auto: update  
+      show-sql: true
+      properties:
+          "[hibernate.format_sql]": true
+
+app:
+  security:
+    jwt:
+      secret-key: tzyUDpPD0UdhgKyr0oTRNOL1hGajLHikkatdo29yrGvqfvLm10FcFEvNqT0PNEw1x/MyHN2GJFemFuzoSsRt/w==
+      expiration: 86400000 # 1 day in milliseconds
