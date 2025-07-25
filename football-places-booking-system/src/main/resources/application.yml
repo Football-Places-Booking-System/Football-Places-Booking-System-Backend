@@ -1,28 +1,21 @@
 server:
   port: 8080
+  
 spring:
   application:
     name: football-places-booking-system
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/footballPlayer
-    username: postgres
-    password: Wpqjvkkzb123!
-    driver-class-name: org.postgresql.Driver
+      url: jdbc:postgresql://localhost:5432/football-booking-system
+      username: postgres
+      password: o5002d6b71a
+      driver-class-name: org.postgresql.Driver
   jpa:
-    hibernate:
-      ddl-auto: none # "none"
-    show-sql: true
-    properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-
-  # Liquibase Configuration
-  liquibase:
-    change-log: classpath:/db/changelog/db.changelog-master.yaml
-
+          ddl-auto: update  
+      show-sql: true
+      properties:
+          "[hibernate.format_sql]": true
 
 app:
   security:
