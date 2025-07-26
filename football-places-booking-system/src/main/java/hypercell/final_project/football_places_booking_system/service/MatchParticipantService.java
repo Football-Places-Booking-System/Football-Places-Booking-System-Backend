@@ -1,19 +1,18 @@
 package hypercell.final_project.football_places_booking_system.service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
 import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
 import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchParticipantDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
-import hypercell.final_project.football_places_booking_system.repository.MatchParticipantRepository;
-import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
