@@ -27,7 +27,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: fk_booking_match_user
-                    referencedTableName: user
+                    referencedTableName: users
                     referencedColumnNames: id
               - column:
                   name: team_id
