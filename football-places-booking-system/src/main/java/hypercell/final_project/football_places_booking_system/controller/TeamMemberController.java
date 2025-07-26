@@ -35,6 +35,7 @@ public class TeamMemberController {
     }
 
     @GetMapping("/team/{teamId}")
+    // Retrieves all team members by team ID
     public ResponseEntity<List<TeamMemberResponse>> getTeamMembersByTeam(
             @PathVariable Long teamId) {
         List<TeamMemberResponse> responses = teamMemberService.getTeamMembersByTeam(teamId);
