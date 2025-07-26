@@ -18,8 +18,10 @@ import java.util.List;
 @RequestMapping("/api/teams")
 @RequiredArgsConstructor
 public class TeamController {
+
     private final TeamService teamService;
     @PostMapping
+//    creates a new team and puts creator as organzier and registers it in teamMember
     public ResponseEntity<TeamResponse> createTeam(
             @RequestBody @Valid TeamCreationRequest request,
             @AuthenticationPrincipal User user) {
@@ -27,17 +29,20 @@ public class TeamController {
         TeamResponse response = teamService.createTeam(request, user.getId());
         return ResponseEntity.ok(response);
     }
+    //getTema by id
     @GetMapping("/{id}")
     public TeamResponse getTeam(@PathVariable Long id) {
         return teamService.getTeamById(id);
     }
 
     @GetMapping
+    //gets all teams in db
     public List<TeamResponse> getAllTeams() {
         return teamService.getAllTeams();
     }
 
     @PutMapping("/{id}")
+    //updates team by id, only organizer can update
     public ResponseEntity<TeamResponse> updateTeam(
             @PathVariable Long id,
             @RequestBody @Valid TeamCreationRequest request,
@@ -46,6 +51,7 @@ public class TeamController {
         TeamResponse response = teamService.updateTeam(id, request, user.getId());
         return ResponseEntity.ok(response);
     }
+    //TODO: Fix 403 Forbidden bug when tryint to delete team by id.
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTeam(
             @PathVariable Long id,
@@ -54,6 +60,7 @@ public class TeamController {
         teamService.deleteTeam(id, user.getId());
         return ResponseEntity.noContent().build();
     }
+    //gets all teams by user signed in
     @GetMapping("/my-teams")
     public ResponseEntity<List<TeamResponse>> getUserTeams(
             @AuthenticationPrincipal UserDetails userDetails) {
