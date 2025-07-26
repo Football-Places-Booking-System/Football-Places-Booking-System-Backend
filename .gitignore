@@ -31,4 +31,4 @@ football-places-booking-system/src/main/resources/application.yml
 .idea/misc.xml
 /.idea
 /football-places-booking-system/src/main/resources/application.yml
-/.idea
+football-places-booking-system/liquibase.properties

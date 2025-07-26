@@ -2,6 +2,7 @@ package hypercell.final_project.football_places_booking_system.util;
 
 import hypercell.final_project.football_places_booking_system.model.db.Place;
 import hypercell.final_project.football_places_booking_system.model.db.Team;
+import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.enums.*;
 import hypercell.final_project.football_places_booking_system.service.BookingMatchService;
@@ -45,7 +46,13 @@ public class DummyDataLoader {
                         .id(1L)
                         .name("Falcons")
                         .description("Top team")
-                        .createdBy(1L)
+                        .creator(
+                                TeamMember.builder()
+                                        .id(1L)  // Assuming you have an ID for TeamMember
+                                        .user(users.get(0))  // Reference to the user
+                                        .role(TeamRole.ORGANIZER)
+                                        .status(TeamStatus.APPROVED)
+                                        .build())
                         .build()
         );
 

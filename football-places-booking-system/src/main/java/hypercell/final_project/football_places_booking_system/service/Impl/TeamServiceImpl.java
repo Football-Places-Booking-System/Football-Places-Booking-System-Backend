@@ -10,6 +10,7 @@ import hypercell.final_project.football_places_booking_system.model.enums.TeamRo
 import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
 import hypercell.final_project.football_places_booking_system.repository.TeamRepository;
+import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,10 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public TeamResponse createTeam(TeamCreationRequest teamCreationRequest, Long creatorid) {
         Team team = new Team();
+        if (teamRepository.existsByNameIgnoreCase(teamCreationRequest.name())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    String.format("Team name '%s' is already taken", teamCreationRequest.name()));
+        }
         team.setName(teamCreationRequest.name());
         team.setDescription(teamCreationRequest.description());
         team = teamRepository.save(team);
@@ -39,6 +44,7 @@ public class TeamServiceImpl implements TeamService {
         organizerMember.setUser(creatorUser);
         organizerMember.setTeam(team);
         organizerMember.setRole(TeamRole.ORGANIZER);
+        //user is automatically organizer when creating a team
         organizerMember.setStatus(TeamStatus.APPROVED);
         teamMemberRepository.save(organizerMember);
 
@@ -47,6 +53,8 @@ public class TeamServiceImpl implements TeamService {
 
         return mapToTeamResponse(team);
     }
+    //The team creation method creates a team by description and name and automatically adds the creator as an organizer.
+    //also doesnt allow for duplicate team names
 
     @Override
     public TeamResponse getTeamById(Long id) {
@@ -64,14 +72,21 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public TeamMemberResponse invitePlayer(Long teamid, String email, User inviter) {
         Team team = teamRepository.getById(teamid);
-        User invitee = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        User invitee = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User with email " + email + " not found"));
+        if (teamMemberRepository.existsByTeamAndUser(team, invitee)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    String.format("User %s is already a member of team %s", email, team.getName())
+            );
+        }
         validateOrganizerRole(team, inviter);
         TeamMember invitation = createInvitation(team, invitee, inviter);
         return mapToTeamMemberResponse(invitation);
     }
 
     @Override
-    public TeamResponse updateTeam(Long id, TeamCreationRequest teamCreationRequest) {
+    public TeamResponse updateTeam(Long id, TeamCreationRequest teamCreationRequest, Long userId) {
         Team team = teamRepository.findById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
 
         if (teamCreationRequest.name() != null) {
@@ -86,11 +101,32 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public void deleteTeam(Long id) {
-        Team team = teamRepository.findById(id)
+    public void deleteTeam(Long teamId, Long userId) {
+
+        Team team = teamRepository.findByIdWithCreator(teamId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
-        teamMemberRepository.deleteAllByTeam(team);
+
+
+        if (!team.getCreator().getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Only the team organizer can delete this team");
+        }
+
+        teamMemberRepository.deleteAllByTeamId(teamId);
+
+
         teamRepository.delete(team);
+    }
+
+    @Override
+    public List<TeamResponse> getTeamsByUser(Long userId) {
+        List<TeamMember> memberships = teamMemberRepository.findByUserId(userId);
+        List<Long> teamIds = memberships.stream()
+                .map(member -> member.getTeam().getId())
+                .toList();
+        List<Team> teams = teamRepository.findAllById(teamIds);
+        return teams.stream()
+                .map(this::mapToTeamResponse).toList();
     }
 
 
