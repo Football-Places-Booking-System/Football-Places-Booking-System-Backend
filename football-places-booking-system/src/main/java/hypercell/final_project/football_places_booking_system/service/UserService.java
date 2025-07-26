@@ -2,6 +2,8 @@ package hypercell.final_project.football_places_booking_system.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.ResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.UserDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
+import hypercell.final_project.football_places_booking_system.model.enums.UserRole;
+import hypercell.final_project.football_places_booking_system.model.enums.UserStatus;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -78,6 +82,43 @@ public class UserService {
             user.getRole(),
             user.getStatus()
         );
+    }
+
+    public List<UserDTO> filterUsers(String email, UserRole role, UserStatus status, String username) {
+        List<User> users = userRepository.findAll().stream()
+            .filter(u -> email == null || u.getEmail().toLowerCase().contains(email.toLowerCase()))
+            .filter(u -> role == null || u.getRole() == role)
+            .filter(u -> status == null || u.getStatus() == status)
+            .filter(u -> username == null || u.getUserName().toLowerCase().contains(username.toLowerCase()))
+            .toList();
+
+        return users.stream()
+            .map(user -> new UserDTO(
+                user.getId(),
+                user.getUserName(),
+                user.getEmail(),
+                null,
+                user.getRole(),
+                user.getStatus()
+            ))
+            .toList();
+    }
+
+    public Page<UserDTO> getAllUsersWithPagination(Pageable pageable) throws AppException {
+        Page<User> usersPage = userRepository.findAll(pageable);
+
+        if (usersPage.isEmpty()) {
+            throw new NoContentException(ErrorCode.NO_CONTENT);
+        }
+
+        return usersPage.map(user -> new UserDTO(
+            user.getId(),
+            user.getUserName(),
+            user.getEmail(),
+            null, 
+            user.getRole(),
+            user.getStatus()
+        ));
     }
 
     public List<UserDTO> getAllUsers() throws AppException {
