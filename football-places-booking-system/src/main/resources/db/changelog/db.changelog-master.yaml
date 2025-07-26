@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - include:
+      file: 001_create_user_table.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 002_create_team_table.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 003_create_team_member_table.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 004_create_place_table.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 005_create_booking_match_table.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 006_create_match_participant_table.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 007_create_request_table.yaml
+      relativeToChangelogFile: true

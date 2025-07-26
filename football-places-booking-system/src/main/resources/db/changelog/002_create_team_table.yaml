@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0002
+      author: teamplayer
+      changes:
+        - createTable:
+            tableName: team
+            remarks: "Team table stores football teams created by organizers. Each team has a creator (organizer) and can have multiple members."
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: created_by
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_team_user
+                    referencedTableName: user
+                    referencedColumnNames: id
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false

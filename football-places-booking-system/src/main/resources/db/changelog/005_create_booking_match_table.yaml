@@ -1,0 +1,59 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0005
+      author: teamplayer
+      changes:
+        - createTable:
+            tableName: booking_match
+            remarks: "BookingMatch table represents a scheduled match at a specific place and time."
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: place_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_booking_match_place
+                    referencedTableName: place
+                    referencedColumnNames: id
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_booking_match_user
+                    referencedTableName: user
+                    referencedColumnNames: id
+              - column:
+                  name: team_id
+                  type: UUID
+                  constraints:
+                    foreignKeyName: fk_booking_match_team
+                    referencedTableName: team
+                    referencedColumnNames: id
+              - column:
+                  name: start_time
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_time
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+                  remarks: "CONFIRMED, CANCELLED, PENDING"
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
