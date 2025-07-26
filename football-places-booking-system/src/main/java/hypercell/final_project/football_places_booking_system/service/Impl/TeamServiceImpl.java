@@ -1,5 +1,11 @@
 package hypercell.final_project.football_places_booking_system.service.Impl;
 
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import hypercell.final_project.football_places_booking_system.model.db.Team;
 import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.db.User;
@@ -13,11 +19,6 @@ import hypercell.final_project.football_places_booking_system.repository.TeamRep
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamService;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 @AllArgsConstructor
 @Service
@@ -80,6 +81,11 @@ public class TeamServiceImpl implements TeamService {
                     String.format("User %s is already a member of team %s", email, team.getName())
             );
         }
+        //    User invitee = userRepository.findByEmail(email);
+        // if (invitee == null) {
+        //     throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        // }
+
         validateOrganizerRole(team, inviter);
         TeamMember invitation = createInvitation(team, invitee, inviter);
         return mapToTeamMemberResponse(invitation);
