@@ -2,6 +2,7 @@ package hypercell.final_project.football_places_booking_system.controller;
 
 import java.util.List;
 
+import hypercell.final_project.football_places_booking_system.model.db.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
