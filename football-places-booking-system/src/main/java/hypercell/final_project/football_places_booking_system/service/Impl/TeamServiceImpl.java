@@ -59,7 +59,7 @@ public class TeamServiceImpl implements TeamService {
     //also doesnt allow for duplicate team names
 
     @Override
-    public TeamResponse getTeamById(Long id) {
+    public TeamResponse getTeamById(UUID id) {
         Team team = teamRepository.findById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
         return mapToTeamResponse(team);
     }
@@ -72,7 +72,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public TeamMemberResponse invitePlayer(Long teamid, String email, User inviter) {
+    public TeamMemberResponse invitePlayer(UUID teamid, String email, User inviter) {
         Team team = teamRepository.getById(teamid);
         User invitee = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User with email " + email + " not found"));
@@ -93,7 +93,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public TeamResponse updateTeam(Long id, TeamCreationRequest teamCreationRequest, UUID userId) {
+    public TeamResponse updateTeam(UUID id, TeamCreationRequest teamCreationRequest, UUID userId) {
         Team team = teamRepository.findById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
 
         if (teamCreationRequest.name() != null) {
@@ -108,7 +108,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public void deleteTeam(Long teamId, UUID userId) {
+    public void deleteTeam(UUID teamId, UUID userId) {
 
         Team team = teamRepository.findByIdWithCreator(teamId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
@@ -128,7 +128,7 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public List<TeamResponse> getTeamsByUser(UUID userId) {
         List<TeamMember> memberships = teamMemberRepository.findByUserId(userId);
-        List<Long> teamIds = memberships.stream()
+        List<UUID> teamIds = memberships.stream()
                 .map(member -> member.getTeam().getId())
                 .toList();
         List<Team> teams = teamRepository.findAllById(teamIds);

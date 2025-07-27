@@ -1,8 +1,10 @@
 package hypercell.final_project.football_places_booking_system.model.db;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -25,8 +27,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class MatchParticipant {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
     // Status of the participant (e.g., INVITED, ACCEPTED, DECLINED).
     @Enumerated(EnumType.STRING)

@@ -3,6 +3,7 @@ package hypercell.final_project.football_places_booking_system.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -40,7 +41,7 @@ public class MatchParticipantService {
                 .orElseThrow(() -> new EntityNotFoundException("User with email not found"));
 
         MatchParticipant participant = MatchParticipant.builder()
-                .id((long) (dummyParticipants.size() + 1)) // simulate ID
+                .id(UUID.randomUUID()) // simulate ID
                 .bookingMatch(BookingMatch.builder().id(dto.bookingMatchId()).build())
                 .user(user)
                 .status(ParticipantStatus.INVITED)
@@ -68,7 +69,7 @@ public class MatchParticipantService {
     }
 
     // Updates the participant's status and response time.
-    public MatchParticipant respondToInvitation(Long participantId, ParticipantStatus status) {
+    public MatchParticipant respondToInvitation(UUID participantId, ParticipantStatus status) {
         // Dummy version
         MatchParticipant p = dummyParticipants.stream()
                 .filter(mp -> mp.getId().equals(participantId))
@@ -92,7 +93,7 @@ public class MatchParticipantService {
     }
 
     // Returns all participants for a given match.
-    public List<MatchParticipant> getByMatch(Long matchId) {
+    public List<MatchParticipant> getByMatch(UUID matchId) {
         // Dummy version
         return dummyParticipants.stream()
                 .filter(p -> p.getBookingMatch().getId().equals(matchId))

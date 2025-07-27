@@ -1,24 +1,20 @@
 package hypercell.final_project.football_places_booking_system.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
 import hypercell.final_project.football_places_booking_system.model.db.Place;
 import hypercell.final_project.football_places_booking_system.model.db.Team;
 import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingMatchDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.MatchStatus;
-
-//import hypercell.final_project.football_places_booking_system.repository.BookingMatchRepository;
-//import hypercell.final_project.football_places_booking_system.repository.PlaceRepository;
-//import hypercell.final_project.football_places_booking_system.repository.TeamRepository;
-//import hypercell.final_project.football_places_booking_system.repository.UserRepository;
-
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -67,7 +63,7 @@ public class BookingMatchService {
                 .orElseThrow(() -> new EntityNotFoundException("Team not found"));
 
         BookingMatch match = BookingMatch.builder()
-                .id((long) (dummyMatches.size() + 1)) // simulate ID
+                .id(UUID.randomUUID()) // simulate ID
                 .place(place)
                 .user(user)
                 .team(team)
@@ -91,13 +87,13 @@ public class BookingMatchService {
         return match;
     }
 
-    public BookingMatch cancelBooking(Long matchId) {
+    public BookingMatch cancelBooking(UUID matchId) {
         BookingMatch match = getById(matchId);
         match.setStatus(MatchStatus.CANCELLED);
         return match;
     }
 
-    public BookingMatch getById(Long id) {
+    public BookingMatch getById(UUID id) {
         return dummyMatches.stream()
                 .filter(m -> m.getId().equals(id))
                 .findFirst()
@@ -106,21 +102,21 @@ public class BookingMatchService {
         //         .orElseThrow(() -> new EntityNotFoundException("Match not found"));
     }
 
-    public List<BookingMatch> getByUser(Long userId) {
+    public List<BookingMatch> getByUser(UUID userId) {
         return dummyMatches.stream()
                 .filter(m -> m.getUser().getId().equals(userId))
                 .toList();
         // return bookingMatchRepository.findByUserId(userId);
     }
 
-    public List<BookingMatch> getByTeam(Long teamId) {
+    public List<BookingMatch> getByTeam(UUID teamId) {
         return dummyMatches.stream()
                 .filter(m -> m.getTeam().getId().equals(teamId))
                 .toList();
         // return bookingMatchRepository.findByTeamId(teamId);
     }
 
-    public List<BookingMatch> getByPlace(Long placeId) {
+    public List<BookingMatch> getByPlace(UUID placeId) {
         return dummyMatches.stream()
                 .filter(m -> m.getPlace().getId().equals(placeId))
                 .toList();

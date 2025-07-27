@@ -1,8 +1,10 @@
 package hypercell.final_project.football_places_booking_system.model.db;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import hypercell.final_project.football_places_booking_system.model.enums.MatchStatus;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -29,8 +31,9 @@ import lombok.Setter;
 @Builder
 public class BookingMatch extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
     // Start and end times for the match booking.
     private LocalDateTime startTime;

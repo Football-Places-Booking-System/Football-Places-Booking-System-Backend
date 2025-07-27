@@ -6,7 +6,7 @@ import hypercell.final_project.football_places_booking_system.model.enums.TeamRo
 
 public record TeamMemberCreationRequest(
         UUID userId,
-        Long teamId,
+        UUID teamId,
         TeamRole role,
         UUID invitedById
 ) {

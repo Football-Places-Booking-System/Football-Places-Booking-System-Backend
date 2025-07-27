@@ -33,7 +33,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     public TeamMemberResponse createTeamMember(TeamMemberCreationRequest request, UUID creatorid) {
         User user = userRepository.getById(request.userId());
         TeamResponse teamResponse = teamService.getTeamById(request.teamId());
-        Long teamId = teamResponse.id();
+        UUID teamId = teamResponse.id();
         Team team = teamRepository.findById(teamId).orElseThrow();
         UUID invitedBy = request.invitedById();
         User invitedby = userRepository.getById(invitedBy);
@@ -52,13 +52,13 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     }
 
     @Override
-    public TeamMemberResponse getTeamMemberById(Long id) {
+    public TeamMemberResponse getTeamMemberById(UUID id) {
         TeamMember teamMember = teamMemberRepository.findById(id).orElseThrow();
         return mapToTeamMemberResponse(teamMember);
     }
 
     @Override
-    public List<TeamMemberResponse> getTeamMembersByTeam(Long teamId) {
+    public List<TeamMemberResponse> getTeamMembersByTeam(UUID teamId) {
         Team team = teamRepository.findById(teamId).orElseThrow();
         return teamMemberRepository.findByTeam(team).stream().map(this::mapToTeamMemberResponse).collect(Collectors.toList());
     }
@@ -83,7 +83,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     }
 
     @Override
-    public void deleteTeamMember(Long id) {
+    public void deleteTeamMember(UUID id) {
         TeamMember teamMember = teamMemberRepository.findById(id).orElseThrow();
         teamMemberRepository.delete(teamMember);
     }

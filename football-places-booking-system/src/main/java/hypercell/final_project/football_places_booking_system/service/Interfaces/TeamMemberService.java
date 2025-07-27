@@ -10,11 +10,11 @@ import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS
 public interface TeamMemberService {
 
     TeamMemberResponse createTeamMember(TeamMemberCreationRequest request, UUID creatorid);
-    List<TeamMemberResponse>getTeamMembersByTeam(Long teamId);
+    List<TeamMemberResponse>getTeamMembersByTeam(UUID teamId);
     List<TeamMemberResponse> getTeamMembersByUserId(UUID userId);
     TeamMemberResponse updateTeamMember(TeamMemberUpdateRequest teamMemberUpdateRequest);
-    TeamMemberResponse getTeamMemberById(Long id);
-    void deleteTeamMember(Long id);
+    TeamMemberResponse getTeamMemberById(UUID id);
+    void deleteTeamMember(UUID id);
 }
 
 
