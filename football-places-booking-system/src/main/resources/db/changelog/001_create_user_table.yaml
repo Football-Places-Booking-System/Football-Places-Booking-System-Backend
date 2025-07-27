@@ -4,7 +4,7 @@ databaseChangeLog:
       author: teamplayer
       changes:
         - createTable:
-            tableName: user
+            tableName: users
             remarks: "User table stores all system users including players, organizers, and admins. This is the central identity table for authentication and authorization."
             columns:
               - column:

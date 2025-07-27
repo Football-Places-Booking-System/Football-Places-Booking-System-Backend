@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
@@ -44,7 +45,7 @@ public class TeamMemberController {
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<TeamMemberResponse>> getTeamMembersByUser(
-            @PathVariable Long userId) {
+            @PathVariable UUID userId) {
         List<TeamMemberResponse> responses = teamMemberService.getTeamMembersByUserId(userId);
         return ResponseEntity.ok(responses);
     }

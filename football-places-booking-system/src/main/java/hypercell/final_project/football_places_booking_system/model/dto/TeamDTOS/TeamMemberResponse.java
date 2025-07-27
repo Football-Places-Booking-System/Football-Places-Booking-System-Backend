@@ -6,7 +6,7 @@ import lombok.Builder;
 
 @Builder
 public record TeamMemberResponse(
-        Long userId,
+        java.util.UUID userId,
         String userName,
         TeamRole role,
         TeamStatus status

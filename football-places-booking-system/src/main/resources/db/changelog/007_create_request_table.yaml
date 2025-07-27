@@ -45,7 +45,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: fk_request_sender
-                    referencedTableName: user
+                    referencedTableName: users
                     referencedColumnNames: id
               - column:
                   name: send_to
@@ -53,5 +53,5 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: fk_request_receiver
-                    referencedTableName: user
+                    referencedTableName: users
                     referencedColumnNames: id
