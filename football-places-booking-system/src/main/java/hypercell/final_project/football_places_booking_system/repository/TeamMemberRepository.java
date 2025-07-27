@@ -10,7 +10,7 @@ import hypercell.final_project.football_places_booking_system.model.db.Team;
 import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.db.User;
 
-public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
+public interface TeamMemberRepository extends JpaRepository<TeamMember, UUID> {
     Optional<TeamMember> findByTeamAndUser(Team team, User user);
     Optional<TeamMember> findByTeam(Team team);
     Optional<TeamMember> findByUser(User user);
@@ -18,6 +18,6 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     boolean existsByTeamAndUser(Team team, User user);
     List<TeamMember> getTeamMemberByTeam(Team team);
     List<TeamMember> findByUserId(UUID userId);
-    void deleteAllByTeamId(Long id);
+    void deleteAllByTeamId(UUID id);
     boolean existsByUserIdAndTeamIdAndRole(UUID userId, UUID teamId, String role);
 }

@@ -40,7 +40,7 @@ public class TeamMemberController {
 
     @GetMapping("/{id}")
     public ResponseEntity<TeamMemberResponse> getTeamMemberById(
-            @PathVariable Long id) {
+            @PathVariable UUID id) {
         TeamMemberResponse response = teamMemberService.getTeamMemberById(id);
         return ResponseEntity.ok(response);
     }
@@ -48,7 +48,7 @@ public class TeamMemberController {
     @GetMapping("/team/{teamId}")
     // Retrieves all team members by team ID
     public ResponseEntity<List<TeamMemberResponse>> getTeamMembersByTeam(
-            @PathVariable Long teamId) {
+            @PathVariable UUID teamId) {
         List<TeamMemberResponse> responses = teamMemberService.getTeamMembersByTeam(teamId);
         return ResponseEntity.ok(responses);
     }
@@ -68,7 +68,7 @@ public class TeamMemberController {
     
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTeamMember(
-            @PathVariable Long id) {
+            @PathVariable UUID id) {
         teamMemberService.deleteTeamMember(id);
         return ResponseEntity.noContent().build();
     }

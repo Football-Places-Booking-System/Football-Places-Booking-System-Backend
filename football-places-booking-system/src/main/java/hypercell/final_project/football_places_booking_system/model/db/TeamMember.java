@@ -1,5 +1,6 @@
 package hypercell.final_project.football_places_booking_system.model.db;
 
+import java.util.UUID;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 import jakarta.persistence.*;
@@ -17,7 +18,7 @@ import java.util.List;
 public class TeamMember extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private UUID id;
 
     @Enumerated(EnumType.STRING)
     private TeamRole role;
