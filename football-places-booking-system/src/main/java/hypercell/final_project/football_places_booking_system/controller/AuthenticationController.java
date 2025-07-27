@@ -36,7 +36,9 @@ public class AuthenticationController {
 
         String token = jwtService.generateToken(authenticatedUser);
 
-        return ResponseEntity.ok(new AuthDTO(authenticatedUser.getId(), token));
+        System.out.println("Called Register Controller");
+
+        return ResponseEntity.ok(new AuthDTO(authenticatedUser.getId(), token, authenticatedUser.getRole()));
     }
 
     @PostMapping("/login")
@@ -47,6 +49,6 @@ public class AuthenticationController {
         
         String token = jwtService.generateToken(user);
 
-        return ResponseEntity.ok(new AuthDTO(user.getId(), token));
+        return ResponseEntity.ok(new AuthDTO(user.getId(), token, user.getRole()));
     }
 }

@@ -50,20 +50,20 @@ public class UserService {
             throw new ValidationException(ErrorCode.INVALID_PASSWORD);
         }
 
-        if (userDTO.role() == null) {
-            throw new ValidationException(ErrorCode.INVALID_USER_ROLE);
-        }
-
-        if (userDTO.status() == null) {
-            throw new ValidationException(ErrorCode.INVALID_USER_STATUS);
-        }
+//        if (userDTO.role() == null) {
+//            throw new ValidationException(ErrorCode.INVALID_USER_ROLE);
+//        }
+//
+//        if (userDTO.status() == null) {
+//            throw new ValidationException(ErrorCode.INVALID_USER_STATUS);
+//        }
 
         User user = new User();
         user.setUsername(userDTO.username());
         user.setEmail(userDTO.email());
         user.setPassword(passwordEncoder.encode(userDTO.password()));
-        user.setRole(userDTO.role());
-        user.setStatus(userDTO.status());
+        user.setRole(UserRole.USER);
+        user.setStatus(UserStatus.ACTIVE);
 
         userRepository.save(user);
     }
