@@ -1,7 +1,6 @@
 package hypercell.final_project.football_places_booking_system.repository;
 
 import hypercell.final_project.football_places_booking_system.model.db.Team;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

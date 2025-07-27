@@ -2,9 +2,6 @@ package hypercell.final_project.football_places_booking_system.model.db;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
