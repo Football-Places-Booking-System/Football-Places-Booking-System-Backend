@@ -171,7 +171,7 @@ public class TeamServiceImpl implements TeamService {
         TeamMember invitation = TeamMember.builder()
                 .team(team)
                 .user(invitee)
-                .role(TeamRole.MEMBER)
+                .role(TeamRole.PLAYER)
                 .status(TeamStatus.PENDING)
                 .invitedBy(inviter)
                 .build();
