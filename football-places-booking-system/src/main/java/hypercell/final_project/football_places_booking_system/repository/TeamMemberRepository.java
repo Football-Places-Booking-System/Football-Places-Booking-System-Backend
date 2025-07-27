@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     Optional<TeamMember> findByTeamAndUser(Team team, User user);
@@ -15,6 +16,6 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     Optional<TeamMember> deleteAllByTeam(Team team);
     boolean existsByTeamAndUser(Team team, User user);
     List<TeamMember> getTeamMemberByTeam(Team team);
-    List<TeamMember> findByUserId(Long userId);
+    List<TeamMember> findByUserId(UUID userId);
      void deleteAllByTeamId(Long id);
 }
