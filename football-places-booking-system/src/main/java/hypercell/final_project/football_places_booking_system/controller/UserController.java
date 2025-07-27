@@ -1,6 +1,6 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
-import java.util.List;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,41 +31,30 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/get/{id}")
-    public UserDTO getUserById(@PathVariable Long id) throws AppException {
+    public UserDTO getUserById(@PathVariable UUID id) throws AppException {
         return userService.getUserById(id);
     }
 
     @GetMapping("/filter")
-    public List<UserDTO> filterUsers(
+    public Page<UserDTO> filterUsers(
             @RequestParam(required = false) String email,
             @RequestParam(required = false) UserRole role,
             @RequestParam(required = false) UserStatus status,
-            @RequestParam(required = false) String username
-    ) {
-        return userService.filterUsers(email, role, status, username);
-    }
-
-    @GetMapping("/get")
-    public Page<UserDTO> getUsers(
+            @RequestParam(required = false) String username,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
-    ) throws AppException {
+    ) {
         Pageable pageable = PageRequest.of(page, size);
-        return userService.getAllUsersWithPagination(pageable);
-    }
-    
-    @GetMapping("/all")
-    public List<UserDTO> getAllUsers() throws AppException {
-        return userService.getAllUsers();
+        return userService.filterUsers(email, role, status, username, pageable);
     }
 
     @PatchMapping("/update/{id}")
-    public ResponseEntity<ResponseDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) throws AppException {
+    public ResponseEntity<ResponseDTO> updateUser(@PathVariable UUID id, @RequestBody UserDTO userDTO) throws AppException {
         return userService.updateUser(id, userDTO);
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ResponseDTO> deleteUser(@PathVariable Long id) throws AppException {
+    public ResponseEntity<ResponseDTO> deleteUser(@PathVariable UUID id) throws AppException {
         return userService.deleteUser(id);
     }
 }

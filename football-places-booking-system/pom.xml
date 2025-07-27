@@ -134,8 +134,8 @@
 
 	<build>
 		<plugins>
-<!--			change userName and password to your database-->
-			<plugin>
+        <!-- change userName and password to your database -->
+			<!-- <plugin>
 				<groupId>org.liquibase</groupId>
 				<artifactId>liquibase-maven-plugin</artifactId>
 				<version>4.31.1</version>
@@ -146,7 +146,8 @@
 					<password>1234</password>
 					<driver>org.postgresql.Driver</driver>
 				</configuration>
-			</plugin>
+			</plugin> -->
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
