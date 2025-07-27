@@ -17,7 +17,8 @@ import java.util.List;
 @Data
 public class TeamMember extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
     @Enumerated(EnumType.STRING)
@@ -39,5 +40,6 @@ public class TeamMember extends BaseEntity {
     private User invitedBy;
 
     @OneToMany(mappedBy = "creator")
+    @Builder.Default
     private List<Team> createdTeams = new ArrayList<>();
 }

@@ -1,9 +1,11 @@
 package hypercell.final_project.football_places_booking_system.model.db;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import hypercell.final_project.football_places_booking_system.model.enums.RequestStatus;
 import hypercell.final_project.football_places_booking_system.model.enums.RequestType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -24,8 +26,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Request {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
     private LocalDateTime sendTime;
     private LocalDateTime responseTime;

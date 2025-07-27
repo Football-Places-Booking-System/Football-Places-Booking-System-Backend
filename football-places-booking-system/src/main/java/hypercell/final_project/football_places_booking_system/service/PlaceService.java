@@ -1,13 +1,16 @@
 package hypercell.final_project.football_places_booking_system.service;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import hypercell.final_project.football_places_booking_system.exception.ResourceNotFoundException;
 import hypercell.final_project.football_places_booking_system.model.db.Place;
 import hypercell.final_project.football_places_booking_system.model.dto.PlaceDTO;
 import hypercell.final_project.football_places_booking_system.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PlaceService {
@@ -25,7 +28,7 @@ public class PlaceService {
     }
 
 
-    public Place getPlaceById(Long id) {
+    public Place getPlaceById(UUID id) {
         return placeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Place not found with id: " + id));
     }
@@ -36,7 +39,7 @@ public class PlaceService {
     }
 
 
-    public Place updatePlace(Long id, Place updatedPlace) {
+    public Place updatePlace(UUID id, Place updatedPlace) {
         Place existingPlace = placeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Place not found with id: " + id));
         existingPlace.setName(updatedPlace.getName());
@@ -48,7 +51,7 @@ public class PlaceService {
     }
 
 
-    public void deletePlace(Long id) {
+    public void deletePlace(UUID id) {
         placeRepository.deleteById(id);
     }
 }
