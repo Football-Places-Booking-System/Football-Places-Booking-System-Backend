@@ -1,5 +1,19 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberCreationRequest;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberResponse;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberUpdateRequest;
@@ -7,12 +21,6 @@ import hypercell.final_project.football_places_booking_system.service.Interfaces
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
@@ -21,6 +29,8 @@ import java.util.UUID;
 public class TeamMemberController {
     private final TeamMemberService teamMemberService;
 
+    // @PreAuthorize("@authService.hasTeamRole(#teamId, 'ORGANIZER')")
+    // add teamId as a path variable
     @PostMapping
     public ResponseEntity<TeamMemberResponse> createTeamMember(
             @Valid @RequestBody TeamMemberCreationRequest request) {
@@ -55,6 +65,7 @@ public class TeamMemberController {
         TeamMemberResponse response = teamMemberService.updateTeamMember(request);
         return ResponseEntity.ok(response);
     }
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTeamMember(
             @PathVariable Long id) {
