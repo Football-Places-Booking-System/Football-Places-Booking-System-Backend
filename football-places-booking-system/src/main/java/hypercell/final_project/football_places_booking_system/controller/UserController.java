@@ -35,7 +35,7 @@ public class UserController {
         return userService.getUserById(id);
     }
 
-    @GetMapping("/filter")
+    @GetMapping("/all")
     public Page<UserDTO> filterUsers(
             @RequestParam(required = false) String email,
             @RequestParam(required = false) UserRole role,
