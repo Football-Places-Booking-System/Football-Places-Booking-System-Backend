@@ -1,6 +1,5 @@
 package hypercell.final_project.football_places_booking_system.model.dto;
 
-import hypercell.final_project.football_places_booking_system.model.db.Place;
 import hypercell.final_project.football_places_booking_system.model.enums.PlaceType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlaceDto{
+public class PlaceDTO {
 
 
     @NotBlank(message = "Place name is required")

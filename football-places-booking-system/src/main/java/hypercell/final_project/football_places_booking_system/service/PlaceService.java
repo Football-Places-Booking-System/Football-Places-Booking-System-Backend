@@ -2,7 +2,7 @@ package hypercell.final_project.football_places_booking_system.service;
 
 import hypercell.final_project.football_places_booking_system.exception.ResourceNotFoundException;
 import hypercell.final_project.football_places_booking_system.model.db.Place;
-import hypercell.final_project.football_places_booking_system.model.dto.PlaceDto;
+import hypercell.final_project.football_places_booking_system.model.dto.PlaceDTO;
 import hypercell.final_project.football_places_booking_system.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ public class PlaceService {
     private final PlaceRepository placeRepository;
 
 
-    public Place createPlace(PlaceDto placeDto) {
+    public Place createPlace(PlaceDTO placeDto) {
         Place place = new Place();
         place.setName(placeDto.getName());
         place.setLocation(placeDto.getLocation());

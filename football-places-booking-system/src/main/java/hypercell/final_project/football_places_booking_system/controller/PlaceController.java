@@ -1,7 +1,7 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
 import hypercell.final_project.football_places_booking_system.model.db.Place;
-import hypercell.final_project.football_places_booking_system.model.dto.PlaceDto;
+import hypercell.final_project.football_places_booking_system.model.dto.PlaceDTO;
 
 import hypercell.final_project.football_places_booking_system.service.PlaceService;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class PlaceController {
     }
 
     @PostMapping
-    public ResponseEntity<Place> create(@RequestBody PlaceDto placeDto) {
+    public ResponseEntity<Place> create(@RequestBody PlaceDTO placeDto) {
         Place place = placeService.createPlace(placeDto);
         return new ResponseEntity<>(place, HttpStatus.CREATED);
     }
