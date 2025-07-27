@@ -1,6 +1,7 @@
 package hypercell.final_project.football_places_booking_system.service.Impl;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,7 @@ public class TeamServiceImpl implements TeamService {
     private final UserRepository userRepository;
 
     @Override
-    public TeamResponse createTeam(TeamCreationRequest teamCreationRequest, Long creatorid) {
+    public TeamResponse createTeam(TeamCreationRequest teamCreationRequest, UUID creatorid) {
         Team team = new Team();
         if (teamRepository.existsByNameIgnoreCase(teamCreationRequest.name())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
@@ -92,7 +93,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public TeamResponse updateTeam(Long id, TeamCreationRequest teamCreationRequest, Long userId) {
+    public TeamResponse updateTeam(Long id, TeamCreationRequest teamCreationRequest, UUID userId) {
         Team team = teamRepository.findById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
 
         if (teamCreationRequest.name() != null) {
@@ -107,7 +108,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public void deleteTeam(Long teamId, Long userId) {
+    public void deleteTeam(Long teamId, UUID userId) {
 
         Team team = teamRepository.findByIdWithCreator(teamId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
@@ -125,7 +126,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public List<TeamResponse> getTeamsByUser(Long userId) {
+    public List<TeamResponse> getTeamsByUser(UUID userId) {
         List<TeamMember> memberships = teamMemberRepository.findByUserId(userId);
         List<Long> teamIds = memberships.stream()
                 .map(member -> member.getTeam().getId())
@@ -170,7 +171,7 @@ public class TeamServiceImpl implements TeamService {
         TeamMember invitation = TeamMember.builder()
                 .team(team)
                 .user(invitee)
-                .role(TeamRole.MEMBER)
+                .role(TeamRole.PLAYER)
                 .status(TeamStatus.PENDING)
                 .invitedBy(inviter)
                 .build();

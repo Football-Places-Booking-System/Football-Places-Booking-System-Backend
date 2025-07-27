@@ -19,7 +19,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: fk_team_member_user
-                    referencedTableName: user
+                    referencedTableName: users
                     referencedColumnNames: id
               - column:
                   name: team_id
@@ -46,7 +46,7 @@ databaseChangeLog:
                   type: UUID
                   constraints:
                     foreignKeyName: fk_team_member_inviter
-                    referencedTableName: user
+                    referencedTableName: users
                     referencedColumnNames: id
               - column:
                   name: created_at

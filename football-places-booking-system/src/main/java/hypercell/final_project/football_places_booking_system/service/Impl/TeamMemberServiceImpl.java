@@ -1,6 +1,7 @@
 package hypercell.final_project.football_places_booking_system.service.Impl;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -18,12 +19,6 @@ import hypercell.final_project.football_places_booking_system.repository.TeamRep
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -35,12 +30,12 @@ public class TeamMemberServiceImpl implements TeamMemberService {
 
 
     @Override
-    public TeamMemberResponse createTeamMember(TeamMemberCreationRequest request, Long creatorid) {
+    public TeamMemberResponse createTeamMember(TeamMemberCreationRequest request, UUID creatorid) {
         User user = userRepository.getById(request.userId());
         TeamResponse teamResponse = teamService.getTeamById(request.teamId());
         Long teamId = teamResponse.id();
         Team team = teamRepository.findById(teamId).orElseThrow();
-        Long invitedBy = request.invitedById();
+        UUID invitedBy = request.invitedById();
         User invitedby = userRepository.getById(invitedBy);
         userRepository.getById(request.invitedById());
 
@@ -69,7 +64,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     }
 
     @Override
-    public List<TeamMemberResponse> getTeamMembersByUserId(Long userId) {
+    public List<TeamMemberResponse> getTeamMembersByUserId(UUID userId) {
         User user = userRepository.findById(userId).orElseThrow();
 
         return teamMemberRepository.findByUser(user).stream()

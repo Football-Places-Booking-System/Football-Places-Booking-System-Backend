@@ -27,7 +27,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: fk_match_participant_user
-                    referencedTableName: user
+                    referencedTableName: users
                     referencedColumnNames: id
               - column:
                   name: status

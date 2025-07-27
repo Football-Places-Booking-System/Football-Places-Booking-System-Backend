@@ -1,11 +1,13 @@
 package hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS;
 
+import java.util.UUID;
+
 import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
 
 public record TeamMemberCreationRequest(
-        Long userId,
+        UUID userId,
         Long teamId,
         TeamRole role,
-        Long invitedById
+        UUID invitedById
 ) {
 }
