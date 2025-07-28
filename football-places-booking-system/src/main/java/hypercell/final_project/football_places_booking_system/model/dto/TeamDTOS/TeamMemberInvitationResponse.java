@@ -2,14 +2,16 @@ package hypercell.final_project.football_places_booking_system.model.dto.TeamDTO
 
 import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
-import lombok.Builder;
+
 import java.util.UUID;
 
-@Builder
-public record TeamMemberResponse(
-
-        UUID userId,
-        String userName,
+public record TeamMemberInvitationResponse(
+        UUID teamMemberId,
         TeamRole role,
-        TeamStatus status
-) { }
+        TeamStatus status,
+        UUID userId,
+        UUID teamId,
+        String userName,
+        String teamName
+) {
+}

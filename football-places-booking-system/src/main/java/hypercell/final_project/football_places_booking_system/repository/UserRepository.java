@@ -15,4 +15,8 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
     Optional<User> findByEmailIgnoreCase(String email);
     Optional<User> findById(UUID creatorid);
 
+    String findUsernameById(UUID id);
+    
+    
+
 }

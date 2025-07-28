@@ -1,6 +1,8 @@
 package hypercell.final_project.football_places_booking_system.model.db;
 
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 import jakarta.persistence.*;
@@ -29,10 +31,12 @@ public class TeamMember extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = true)
+    @JsonBackReference  // This prevents infinite recursion
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "team_id", nullable = true)
+    @JsonBackReference  // This prevents infinite recursion
     private Team team;
 
     @ManyToOne

@@ -13,4 +13,7 @@ public interface TeamRepository extends JpaRepository<Team , UUID> {
     @Query("SELECT t FROM Team t JOIN FETCH t.creator WHERE t.id = :id")
     Optional<Team> findByIdWithCreator(@Param("id") UUID id);
 
+    String findTeamNameById(UUID teamId);
+
+    String findTeamDescriptionById(UUID teamId);
 }
