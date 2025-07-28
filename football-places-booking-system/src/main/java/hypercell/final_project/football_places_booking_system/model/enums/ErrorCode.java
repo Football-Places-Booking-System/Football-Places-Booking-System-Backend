@@ -26,6 +26,7 @@ public enum ErrorCode {
     INVALID_TEAM_MEMBER_STATUS(401, "Team member status is invalid"),
     TEAM_MEMBER_ALREADY_EXISTS(402, "User is already a team member"),
     TEAM_MEMBER_NOT_FOUND(403, "Team member not found"),
+    INVALID_TEAM_STATUS(404, "Team status is invalid"),
 
     // ===== Place Errors =====
     INVALID_PLACE_NAME(500, "Place name is either empty or null"),

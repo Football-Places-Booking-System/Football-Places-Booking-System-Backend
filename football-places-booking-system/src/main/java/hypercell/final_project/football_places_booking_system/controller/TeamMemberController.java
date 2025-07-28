@@ -6,24 +6,16 @@ import java.util.UUID;
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
+import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.db.User;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamInvitationRequest;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.*;
+import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberCreationRequest;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberResponse;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberUpdateRequest;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -98,5 +90,19 @@ public class TeamMemberController {
         User requester = (User) userDetails;
         teamMemberService.deleteTeamMember(id, requester.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    // Endpoint to accept or reject an invitation
+    @GetMapping("/invitation/{teamMemberId}")
+    public ResponseEntity<TeamMemberInvitationResponse> respondToInvitation(
+            @PathVariable UUID teamMemberId,
+            @RequestParam("status") TeamStatus request
+            ) throws AppException {
+
+        System.out.println("Responding to invitation for team member ID: " + teamMemberId + " with request: " + request);
+
+        TeamMemberInvitationResponse response = teamMemberService.respondToInvitation(teamMemberId, request);
+
+        return ResponseEntity.ok(response);
     }
 }

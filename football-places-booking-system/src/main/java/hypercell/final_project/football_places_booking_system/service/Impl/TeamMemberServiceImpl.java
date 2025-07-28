@@ -4,19 +4,19 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.*;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.model.db.Team;
 import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.db.User;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberCreationRequest;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberResponse;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberUpdateRequest;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamResponse;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
 import hypercell.final_project.football_places_booking_system.repository.TeamRepository;
@@ -31,6 +31,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
     private final TeamServiceImpl teamService;
+    private final EmailServiceImpl emailService;
 
 
     @Override
@@ -115,8 +116,16 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         TeamMemberCreationRequest req = new TeamMemberCreationRequest(
                 user.getId(), teamId, TeamRole.PLAYER, invitedById
         );
-        return createTeamMember(req, invitedById);
+        // createTeamMember and save the result
+        TeamMemberResponse teamMemberResponse = createTeamMember(req, invitedById);
+        // 3. Send the invitation email
+        String subject = "You have been invited to join a team!";
+        emailService.sendRequestTOJoinTeam(invitedById, user.getId(), email, teamId);
+        // return response;
+        return teamMemberResponse;
     }
+
+
     @Override
     public void deleteTeamMember(UUID teamMemberId, UUID requesterId) throws NotFoundException, ValidationException {
         TeamMember teamMember = teamMemberRepository.findById(teamMemberId).
@@ -136,5 +145,40 @@ public class TeamMemberServiceImpl implements TeamMemberService {
             }
         }
         teamMemberRepository.delete(teamMember);
+    }
+
+    @Override
+    public TeamMemberInvitationResponse respondToInvitation(UUID teamMemberId, TeamStatus request) throws AppException {
+        TeamMember teamMember = teamMemberRepository.findById(teamMemberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
+
+        // set the status based on the request
+        if (teamMember.getStatus() == TeamStatus.PENDING) {
+            throw new ValidationException(ErrorCode.INVALID_TEAM_STATUS);
+        }
+        else if (request == TeamStatus.APPROVED ) {
+            teamMember.setStatus(TeamStatus.APPROVED);
+        }
+        else if (request == TeamStatus.REJECTED )
+        {
+            teamMember.setStatus(TeamStatus.REJECTED);
+        }
+        else {
+            throw new ValidationException(ErrorCode.INVALID_TEAM_STATUS);
+        }
+        // save the team member
+        teamMember = teamMemberRepository.save(teamMember);
+        // map to response
+        TeamMemberInvitationResponse response = new TeamMemberInvitationResponse(
+                teamMember.getId(),
+                teamMember.getRole(),
+                teamMember.getStatus(),
+                teamMember.getUser().getId(),
+                teamMember.getTeam().getId(),
+                teamMember.getUser().getUserName(),
+                teamMember.getTeam().getName()
+        );
+
+        return response;
     }
 }
