@@ -3,6 +3,7 @@ package hypercell.final_project.football_places_booking_system.controller;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.exception.AppException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,7 +33,7 @@ public class TeamController {
 //    creates a new team and puts creator as organzier and registers it in teamMember
     public ResponseEntity<TeamResponse> createTeam(
             @RequestBody @Valid TeamCreationRequest request,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal User user) throws AppException {
        // Long creatorId = Long.parseLong(user.getUsername());
         TeamResponse response = teamService.createTeam(request, user.getId());
         return ResponseEntity.ok(response);

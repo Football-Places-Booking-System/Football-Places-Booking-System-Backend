@@ -4,6 +4,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
+import hypercell.final_project.football_places_booking_system.exception.ValidationException;
+import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
+import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.model.db.Team;
@@ -30,7 +34,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
 
 
     @Override
-    public TeamMemberResponse createTeamMember(TeamMemberCreationRequest request, UUID creatorid) {
+    public TeamMemberResponse createTeamMember(TeamMemberCreationRequest request, UUID creatorid) throws NotFoundException {
         User user = userRepository.getById(request.userId());
         TeamResponse teamResponse = teamService.getTeamById(request.teamId());
         UUID teamId = teamResponse.id();
@@ -82,12 +86,6 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         return mapToTeamMemberResponse(teamMemberRepository.save(teamMember));
     }
 
-    @Override
-    public void deleteTeamMember(UUID id) {
-        TeamMember teamMember = teamMemberRepository.findById(id).orElseThrow();
-        teamMemberRepository.delete(teamMember);
-    }
-
 
     private TeamMemberResponse mapToTeamMemberResponse(TeamMember teamMember) {
         return new TeamMemberResponse(
@@ -96,5 +94,47 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 teamMember.getRole(),
                 teamMember.getStatus()
         );
+    }
+    public boolean isOrganizer(UUID userId, UUID teamId) throws NotFoundException {
+        System.out.println("Checking organizer: user=" + userId + ", team=" + teamId);
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+
+        return teamMemberRepository.findByTeamAndUser(team, user)
+                .map(tm -> tm.getRole() == TeamRole.ORGANIZER)
+                .orElse(false);
+    }
+    public TeamMemberResponse inviteByEmail(String email, UUID teamId, UUID invitedById) throws NotFoundException {
+        // 1. Find the user by email
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+        // 2. Build the TeamMemberCreationRequest
+        TeamMemberCreationRequest req = new TeamMemberCreationRequest(
+                user.getId(), teamId, TeamRole.PLAYER, invitedById
+        );
+        return createTeamMember(req, invitedById);
+    }
+    @Override
+    public void deleteTeamMember(UUID teamMemberId, UUID requesterId) throws NotFoundException, ValidationException {
+        TeamMember teamMember = teamMemberRepository.findById(teamMemberId).
+                orElseThrow(()->
+                new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
+
+        // organizer can remove anyone but member can remove self
+        if (!teamMember.getUser().getId().equals(requesterId)) {
+            // Not deleting self, must be organizer!
+            boolean isOrganizer = teamMemberRepository.existsByUserIdAndTeamIdAndRole(
+                    requesterId,
+                    teamMember.getTeam().getId(),
+                    String.valueOf(TeamRole.ORGANIZER)
+            );
+            if (!isOrganizer) {
+                throw new ValidationException(ErrorCode.FORBIDDEN);
+            }
+        }
+        teamMemberRepository.delete(teamMember);
     }
 }

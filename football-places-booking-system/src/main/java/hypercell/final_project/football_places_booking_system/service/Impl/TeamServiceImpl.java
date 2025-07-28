@@ -3,6 +3,11 @@ package hypercell.final_project.football_places_booking_system.service.Impl;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
+import hypercell.final_project.football_places_booking_system.exception.AppException;
+import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
+import hypercell.final_project.football_places_booking_system.exception.ValidationException;
+import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -31,11 +36,10 @@ public class TeamServiceImpl implements TeamService {
     private final UserRepository userRepository;
 
     @Override
-    public TeamResponse createTeam(TeamCreationRequest teamCreationRequest, UUID creatorid) {
+    public TeamResponse createTeam(TeamCreationRequest teamCreationRequest, UUID creatorid) throws AppException {
         Team team = new Team();
         if (teamRepository.existsByNameIgnoreCase(teamCreationRequest.name())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    String.format("Team name '%s' is already taken", teamCreationRequest.name()));
+            throw new AlreadyExistsException(ErrorCode.TEAM_ALREADY_EXISTS);
         }
         team.setName(teamCreationRequest.name());
         team.setDescription(teamCreationRequest.description());
@@ -59,8 +63,8 @@ public class TeamServiceImpl implements TeamService {
     //also doesnt allow for duplicate team names
 
     @Override
-    public TeamResponse getTeamById(UUID id) {
-        Team team = teamRepository.findById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
+    public TeamResponse getTeamById(UUID id) throws NotFoundException {
+        Team team = teamRepository.findById(id).orElseThrow( ()-> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
         return mapToTeamResponse(team);
     }
 
@@ -72,15 +76,12 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public TeamMemberResponse invitePlayer(UUID teamid, String email, User inviter) {
+    public TeamMemberResponse invitePlayer(UUID teamid, String email, User inviter) throws NotFoundException, AlreadyExistsException, ValidationException {
         Team team = teamRepository.getById(teamid);
         User invitee = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User with email " + email + " not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
         if (teamMemberRepository.existsByTeamAndUser(team, invitee)) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    String.format("User %s is already a member of team %s", email, team.getName())
-            );
+            throw new AlreadyExistsException(ErrorCode.TEAM_MEMBER_ALREADY_EXISTS);
         }
         //    User invitee = userRepository.findByEmail(email);
         // if (invitee == null) {
@@ -93,8 +94,8 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public TeamResponse updateTeam(UUID id, TeamCreationRequest teamCreationRequest, UUID userId) {
-        Team team = teamRepository.findById(id).orElseThrow( ()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
+    public TeamResponse updateTeam(UUID id, TeamCreationRequest teamCreationRequest, UUID userId) throws NotFoundException {
+        Team team = teamRepository.findById(id).orElseThrow( ()-> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
 
         if (teamCreationRequest.name() != null) {
             team.setName(teamCreationRequest.name());
@@ -108,15 +109,14 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public void deleteTeam(UUID teamId, UUID userId) {
+    public void deleteTeam(UUID teamId, UUID userId) throws NotFoundException, ValidationException {
 
         Team team = teamRepository.findByIdWithCreator(teamId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
 
 
         if (!team.getCreator().getUser().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Only the team organizer can delete this team");
+            throw new ValidationException(ErrorCode.FORBIDDEN);
         }
 
         teamMemberRepository.deleteAllByTeamId(teamId);
@@ -135,6 +135,7 @@ public class TeamServiceImpl implements TeamService {
         return teams.stream()
                 .map(this::mapToTeamResponse).toList();
     }
+
 
 
     private TeamResponse mapToTeamResponse(Team team) {
@@ -177,9 +178,9 @@ public class TeamServiceImpl implements TeamService {
                 .build();
         return teamMemberRepository.save(invitation);
     }
-    private void validateOrganizerRole(Team team, User user) {
+    private void validateOrganizerRole(Team team, User user) throws ValidationException {
         teamMemberRepository.findByTeamAndUser(team, user)
                 .filter(member -> member.getRole().equals(TeamRole.ORGANIZER))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,"Only team organizers can update team"));
+                .orElseThrow(() -> new ValidationException(ErrorCode.FORBIDDEN));
     }
 }
