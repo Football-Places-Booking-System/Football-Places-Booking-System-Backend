@@ -142,19 +142,14 @@ public class TeamMemberServiceImpl implements TeamMemberService {
 
     @Override
     public void deleteTeamMember(UUID teamMemberId, UUID requesterId) throws NotFoundException, ValidationException {
-        TeamMember teamMember = teamMemberRepository.findById(teamMemberId).
-                orElseThrow(()->
+        TeamMember teamMember = teamMemberRepository.findById(teamMemberId)
+                .orElseThrow(()->
                 new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
 
         // organizer can remove anyone but member can remove self
         if (!teamMember.getUser().getId().equals(requesterId)) {
             // Not deleting self, must be organizer!
-            boolean isOrganizer = teamMemberRepository.existsByUserIdAndTeamIdAndRole(
-                    requesterId,
-                    teamMember.getTeam().getId(),
-                    String.valueOf(TeamRole.ORGANIZER)
-            );
-            if (!isOrganizer) {
+            if (!isOrganizer(requesterId, teamMember.getTeam().getId())) {
                 throw new ValidationException(ErrorCode.FORBIDDEN);
             }
         }
