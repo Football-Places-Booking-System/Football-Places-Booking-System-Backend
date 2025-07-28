@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
-import hypercell.final_project.football_places_booking_system.model.dto.BookingMatchDTOs.BookingMatchDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.MatchStatus;
 import hypercell.final_project.football_places_booking_system.repository.BookingMatchRepository;
 import hypercell.final_project.football_places_booking_system.repository.PlaceRepository;
@@ -25,7 +25,7 @@ public class BookingMatchService {
     private final PlaceRepository placeRepository;
     private final TeamRepository teamRepository;
 
-    public BookingMatch createBookingMatch(BookingMatchDTO dto) {
+    public BookingMatch createBookingMatch(BookingDTO dto) {
         // Validate Place
         var place = placeRepository.findById(dto.placeId())
                 .orElseThrow(() -> new EntityNotFoundException("Place not found"));
