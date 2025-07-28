@@ -3,6 +3,7 @@ package hypercell.final_project.football_places_booking_system.controller;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
 import hypercell.final_project.football_places_booking_system.model.db.User;
@@ -39,7 +40,7 @@ public class TeamMemberController {
     // add teamId as a path variable
     @PostMapping
     public ResponseEntity<TeamMemberResponse> createTeamMember(
-            @Valid @RequestBody TeamMemberCreationRequest request) {
+            @Valid @RequestBody TeamMemberCreationRequest request) throws AppException {
         TeamMemberResponse response = teamMemberService.createTeamMember(request, request.userId());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }

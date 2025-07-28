@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 import hypercell.final_project.football_places_booking_system.exception.AppException;
+import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
+import hypercell.final_project.football_places_booking_system.exception.ValidationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,7 +42,7 @@ public class TeamController {
     }
     //getTema by id
     @GetMapping("/{id}")
-    public TeamResponse getTeam(@PathVariable UUID id) {
+    public TeamResponse getTeam(@PathVariable UUID id) throws AppException {
         return teamService.getTeamById(id);
     }
 
@@ -55,7 +57,7 @@ public class TeamController {
     public ResponseEntity<TeamResponse> updateTeam(
             @PathVariable UUID id,
             @RequestBody @Valid TeamCreationRequest request,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails) throws AppException {
         User user = (User) userDetails;
         TeamResponse response = teamService.updateTeam(id, request, user.getId());
         return ResponseEntity.ok(response);
@@ -64,7 +66,7 @@ public class TeamController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTeam(
             @PathVariable UUID id,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails) throws AppException {
         User user = (User) userDetails;
         teamService.deleteTeam(id, user.getId());
         return ResponseEntity.noContent().build();
