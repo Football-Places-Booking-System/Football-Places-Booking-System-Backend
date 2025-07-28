@@ -22,7 +22,7 @@ public interface TeamMemberService {
     TeamMemberResponse getTeamMemberById(UUID id);
     public void deleteTeamMember(UUID teamMemberId, UUID requesterId) throws NotFoundException, ValidationException;
     public boolean isOrganizer(UUID userId, UUID teamId) throws NotFoundException;
-    public TeamMemberResponse inviteByEmail(String email, UUID teamId, UUID invitedById) throws NotFoundException;
+    public TeamMemberResponse inviteByEmail(String email, UUID teamId, UUID invitedById) throws NotFoundException, ValidationException;
 
     TeamMemberInvitationResponse respondToInvitation(UUID teamMemberId, TeamStatus request) throws AppException;
 }

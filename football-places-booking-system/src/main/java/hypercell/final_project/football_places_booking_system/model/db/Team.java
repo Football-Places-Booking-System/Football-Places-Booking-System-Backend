@@ -40,6 +40,6 @@ public class Team extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "creator_id", nullable = true)
-    private TeamMember creator;
+    private User creator;
 }
 

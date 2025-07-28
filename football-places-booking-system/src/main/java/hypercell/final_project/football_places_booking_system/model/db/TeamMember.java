@@ -43,7 +43,4 @@ public class TeamMember extends BaseEntity {
     @JoinColumn(name = "invited_by", nullable = true)
     private User invitedBy;
 
-    @OneToMany(mappedBy = "creator")
-    @Builder.Default
-    private List<Team> createdTeams = new ArrayList<>();
 }
