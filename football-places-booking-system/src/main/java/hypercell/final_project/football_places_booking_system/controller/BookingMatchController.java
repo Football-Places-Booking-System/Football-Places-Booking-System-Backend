@@ -1,6 +1,7 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDTO;
@@ -29,9 +30,11 @@ public class BookingMatchController {
     }
 
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<BookingResponseDTO> cancel(@PathVariable UUID id) {
-        BookingMatch cancelled = bookingMatchService.cancelBooking(id);
-        return ResponseEntity.ok(toResponseDTO(cancelled));
+    public ResponseEntity<String> cancel(
+            @PathVariable UUID id,
+            @RequestParam UUID userId) {
+        bookingMatchService.cancelBooking(id, userId);
+        return ResponseEntity.ok("Match cancelled");
     }
 
     @GetMapping("/{id}")
