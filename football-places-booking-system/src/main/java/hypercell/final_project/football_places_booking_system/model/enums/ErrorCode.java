@@ -19,6 +19,7 @@ public enum ErrorCode {
     INVALID_TEAM_NAME(300, "Team name is either empty or null"),
     INVALID_TEAM_DESCRIPTION(301, "Team description is either empty or null"),
     TEAM_NOT_FOUND(302, "Team not found"),
+    TEAM_ALREADY_EXISTS(303, "Team already exists"),
 
     // ===== Team Member Errors =====
     INVALID_TEAM_MEMBER_ROLE(400, "Team member role is invalid"),

@@ -3,8 +3,15 @@ package hypercell.final_project.football_places_booking_system.controller;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.exception.AppException;
+import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
+import hypercell.final_project.football_places_booking_system.exception.ValidationException;
+import hypercell.final_project.football_places_booking_system.model.db.User;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamInvitationRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,7 +40,7 @@ public class TeamMemberController {
     // add teamId as a path variable
     @PostMapping
     public ResponseEntity<TeamMemberResponse> createTeamMember(
-            @Valid @RequestBody TeamMemberCreationRequest request) {
+            @Valid @RequestBody TeamMemberCreationRequest request) throws AppException {
         TeamMemberResponse response = teamMemberService.createTeamMember(request, request.userId());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -66,10 +73,30 @@ public class TeamMemberController {
         return ResponseEntity.ok(response);
     }
     
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<Void> deleteTeamMember(
+//            @PathVariable UUID id) {
+//        teamMemberService.deleteTeamMember(id);
+//        return ResponseEntity.noContent().build();
+//    }
+    @PostMapping("/invite/{teamId}")
+    public ResponseEntity<TeamMemberResponse> inviteByEmail(
+            @PathVariable UUID teamId,
+            @Valid @RequestBody TeamInvitationRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) throws NotFoundException {
+        User inviter = (User) userDetails;
+        if (!teamMemberService.isOrganizer(inviter.getId(), teamId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        TeamMemberResponse response = teamMemberService.inviteByEmail(request.email(), teamId, inviter.getId());
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTeamMember(
-            @PathVariable UUID id) {
-        teamMemberService.deleteTeamMember(id);
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) throws NotFoundException, ValidationException {
+        User requester = (User) userDetails;
+        teamMemberService.deleteTeamMember(id, requester.getId());
         return ResponseEntity.noContent().build();
     }
 }
