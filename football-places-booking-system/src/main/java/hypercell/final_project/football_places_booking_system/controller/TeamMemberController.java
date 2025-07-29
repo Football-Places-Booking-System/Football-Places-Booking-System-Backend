@@ -121,9 +121,40 @@ public class TeamMemberController {
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header("Location", redirectUrl)
                     .build();
+
         } else {
             // For frontend API calls - return JSON response
             return ResponseEntity.ok(response);
         }
+    }
+
+
+    @PostMapping("/join-request/{teamId}")
+    public ResponseEntity<TeamMemberResponse> requestToJoinTeam(
+            @PathVariable UUID teamId,
+            @AuthenticationPrincipal UserDetails userDetails) throws AppException {
+        // authenticated user casts to our User entity
+        User user = (User) userDetails;
+        TeamMemberResponse response = teamMemberService.requestToJoinTeam(teamId, user.getId());
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+    @GetMapping("/join-requests/{teamId}")
+    public ResponseEntity<List<TeamMemberResponse>> listPendingRequests(
+            @PathVariable UUID teamId,
+            @AuthenticationPrincipal UserDetails principal) throws AppException {
+        User organiser = (User) principal;                     // make sure caller is organiser
+        if (!teamMemberService.isOrganizer(organiser.getId(), teamId))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+
+        return ResponseEntity.ok(teamMemberService.getPendingJoinRequests(teamId));
+    }
+    @PostMapping("/join-request/respond")   // ?teamMemberId=..&status=APPROVED|REJECTED
+    public ResponseEntity<TeamMemberResponse> handleJoinRequest(
+            @RequestParam UUID teamMemberId,
+            @RequestParam TeamStatus status,
+            @AuthenticationPrincipal UserDetails principal) throws AppException {
+        User organiser = (User) principal;
+        return ResponseEntity.ok(
+                teamMemberService.respondToJoinRequest(teamMemberId, status, organiser.getId()));
     }
 }

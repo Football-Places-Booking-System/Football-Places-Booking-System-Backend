@@ -8,6 +8,7 @@ import hypercell.final_project.football_places_booking_system.model.enums.TeamSt
 import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
 import hypercell.final_project.football_places_booking_system.repository.TeamRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -30,10 +31,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
+
 
 @RequiredArgsConstructor
 @Service
-public class EmailServiceImpl {
+public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
@@ -42,7 +45,7 @@ public class EmailServiceImpl {
     private final UserRepository userRepository;
 
 
-
+    @Override
     public void sendRequestTOJoinTeam(UUID invitedById, UUID inviteeUserId, String email, UUID teamId) {
         try {
             // Get the inviter's name
@@ -73,7 +76,7 @@ public class EmailServiceImpl {
 
 
 
-    public void sendHtmlTeamRequestEmail(String invitedByName, String teamName, String teamDescription, String email, String toName, UUID teamMemberId) {
+    private void sendHtmlTeamRequestEmail(String invitedByName, String teamName, String teamDescription, String email, String toName, UUID teamMemberId) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -108,7 +111,7 @@ public class EmailServiceImpl {
 
     }
 
-
+    @Override
     public void sendResponseToTeamMemberInvitation(TeamMember teamMember, TeamStatus request) {
         try {
             // Get team member details
@@ -134,7 +137,7 @@ public class EmailServiceImpl {
         }
     }
 
-    public void sendHtmlTeamResponseEmail(String teamMemberName, String teamName, String organizerName, String organizerEmail, TeamStatus responseStatus) {
+    private void sendHtmlTeamResponseEmail(String teamMemberName, String teamName, String organizerName, String organizerEmail, TeamStatus responseStatus) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
