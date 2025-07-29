@@ -7,9 +7,9 @@ import java.util.UUID;
 
 @Builder
 public record TeamMemberResponse(
-
         UUID userId,
         String userName,
         TeamRole role,
-        TeamStatus status
+        TeamStatus status,
+        UUID teamId
 ) { }

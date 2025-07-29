@@ -75,7 +75,7 @@ public class TeamMemberController {
     public ResponseEntity<TeamMemberResponse> inviteByEmail(
             @PathVariable UUID teamId,
             @Valid @RequestBody TeamInvitationRequest request,
-            @AuthenticationPrincipal UserDetails userDetails) throws NotFoundException {
+            @AuthenticationPrincipal UserDetails userDetails) throws NotFoundException, ValidationException {
         User inviter = (User) userDetails;
         if (!teamMemberService.isOrganizer(inviter.getId(), teamId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

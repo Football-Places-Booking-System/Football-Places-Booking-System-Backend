@@ -1,5 +1,7 @@
 package hypercell.final_project.football_places_booking_system.service.Impl;
 
+import hypercell.final_project.football_places_booking_system.model.db.Team;
+import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
 import hypercell.final_project.football_places_booking_system.repository.TeamRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
@@ -38,21 +40,31 @@ public class EmailServiceImpl {
 
 
 
-    public void sendRequestTOJoinTeam(UUID invitedById, UUID id, String email, UUID teamId) {
-
-        // get the name of the user who invited
-        String invitedByName = userRepository.findUsernameById(invitedById);
-        //  get the name of the team
-        String teamName = teamRepository.findTeamNameById(teamId);
-        // get the description of the team
-        String teamDescription = teamRepository.findTeamDescriptionById(teamId);
-        // get the name of the user who is invited
-        String toName = userRepository.findUsernameById(id);
-        // get the team member id
-        UUID teamMemberId = teamMemberRepository.findTeamMemberIdByUserIdAndTeamId(id, teamId);
-
-        sendHtmlTeamRequestEmail(invitedByName, teamName, teamDescription, email, toName, teamMemberId);
-
+    public void sendRequestTOJoinTeam(UUID invitedById, UUID inviteeUserId, String email, UUID teamId) {
+        try {
+            // Get the inviter's name
+            String invitedByName = userRepository.findUsernameById(invitedById);
+            
+            // Get team details
+            Team team = teamRepository.findById(teamId)
+                    .orElseThrow(() -> new RuntimeException("Team not found"));
+                    
+            String teamName = team.getName();
+            String teamDescription = team.getDescription();
+            
+            // Get invitee's name
+            String toName = userRepository.findUsernameById(inviteeUserId);
+            
+            // Get or create team member record
+            TeamMember teamMember = teamMemberRepository.findByTeamIdAndUserId(teamId, inviteeUserId)
+                    .orElseThrow(() -> new RuntimeException("Team member record not found"));
+            
+            // Send the email
+            sendHtmlTeamRequestEmail(invitedByName, teamName, teamDescription, email, toName, teamMember.getId());
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e);
+        }
     }
 
 //    public void sendHtmlTeamRequestEmail(String invitedByName, String teamName, String teamDescription, String email, String toName, UUID teamMemberId) {
@@ -119,7 +131,5 @@ public class EmailServiceImpl {
             return e.getMessage();
         }
     }
-
-
 
 }

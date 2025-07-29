@@ -89,12 +89,13 @@ public class TeamMemberServiceImpl implements TeamMemberService {
 
 
     private TeamMemberResponse mapToTeamMemberResponse(TeamMember teamMember) {
-        return new TeamMemberResponse(
-                teamMember.getUser().getId(),
-                teamMember.getUser().getUsername(),
-                teamMember.getRole(),
-                teamMember.getStatus()
-        );
+        return TeamMemberResponse.builder()
+                .userId(teamMember.getUser().getId())
+                .userName(teamMember.getUser().getUsername())
+                .role(teamMember.getRole())
+                .status(teamMember.getStatus())
+                .teamId(teamMember.getTeam().getId())
+                .build();
     }
     public boolean isOrganizer(UUID userId, UUID teamId) throws NotFoundException {
         System.out.println("Checking organizer: user=" + userId + ", team=" + teamId);
@@ -108,39 +109,47 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 .map(tm -> tm.getRole() == TeamRole.ORGANIZER)
                 .orElse(false);
     }
-    public TeamMemberResponse inviteByEmail(String email, UUID teamId, UUID invitedById) throws NotFoundException {
+    public TeamMemberResponse inviteByEmail(String email, UUID teamId, UUID invitedById) throws NotFoundException, ValidationException {
         // 1. Find the user by email
         User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
-        // 2. Build the TeamMemberCreationRequest
+                
+        // 2. Get the team and verify the inviter is the creator or has organizer role
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
+                
+        // 3. Check if the inviter is the team creator or an organizer
+        if (!team.getCreator().getId().equals(invitedById) && 
+            !teamMemberRepository.existsByUserIdAndTeamIdAndRole(
+                invitedById, teamId, TeamRole.ORGANIZER.name())) {
+            throw new ValidationException(ErrorCode.FORBIDDEN);
+        }
+        
+        // 4. Build the TeamMemberCreationRequest
         TeamMemberCreationRequest req = new TeamMemberCreationRequest(
                 user.getId(), teamId, TeamRole.PLAYER, invitedById
         );
-        // createTeamMember and save the result
+        
+        // 5. Create team member and save the result
         TeamMemberResponse teamMemberResponse = createTeamMember(req, invitedById);
-        // 3. Send the invitation email
-        String subject = "You have been invited to join a team!";
+        
+        // 6. Send the invitation email
         emailService.sendRequestTOJoinTeam(invitedById, user.getId(), email, teamId);
-        // return response;
+        
         return teamMemberResponse;
     }
 
 
     @Override
     public void deleteTeamMember(UUID teamMemberId, UUID requesterId) throws NotFoundException, ValidationException {
-        TeamMember teamMember = teamMemberRepository.findById(teamMemberId).
-                orElseThrow(()->
+        TeamMember teamMember = teamMemberRepository.findById(teamMemberId)
+                .orElseThrow(()->
                 new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
 
         // organizer can remove anyone but member can remove self
         if (!teamMember.getUser().getId().equals(requesterId)) {
             // Not deleting self, must be organizer!
-            boolean isOrganizer = teamMemberRepository.existsByUserIdAndTeamIdAndRole(
-                    requesterId,
-                    teamMember.getTeam().getId(),
-                    String.valueOf(TeamRole.ORGANIZER)
-            );
-            if (!isOrganizer) {
+            if (!isOrganizer(requesterId, teamMember.getTeam().getId())) {
                 throw new ValidationException(ErrorCode.FORBIDDEN);
             }
         }
@@ -152,18 +161,15 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         TeamMember teamMember = teamMemberRepository.findById(teamMemberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
 
-        // set the status based on the request
-        if (teamMember.getStatus() == TeamStatus.PENDING) {
-            throw new ValidationException(ErrorCode.INVALID_TEAM_STATUS);
+        // Check if the current status is PENDING (only PENDING invitations can be updated)
+        if (teamMember.getStatus() != TeamStatus.PENDING) {
+            throw new ValidationException(ErrorCode.INVALID_REQUEST_TYPE);
         }
-        else if (request == TeamStatus.APPROVED ) {
-            teamMember.setStatus(TeamStatus.APPROVED);
-        }
-        else if (request == TeamStatus.REJECTED )
-        {
-            teamMember.setStatus(TeamStatus.REJECTED);
-        }
-        else {
+        
+        // Set the new status based on the request
+        if (request == TeamStatus.APPROVED || request == TeamStatus.REJECTED) {
+            teamMember.setStatus(request);
+        } else {
             throw new ValidationException(ErrorCode.INVALID_TEAM_STATUS);
         }
         // save the team member

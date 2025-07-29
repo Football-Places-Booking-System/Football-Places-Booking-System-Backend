@@ -26,6 +26,8 @@ import hypercell.final_project.football_places_booking_system.repository.UserRep
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamService;
 import lombok.AllArgsConstructor;
 
+import java.util.Collections;
+
 @AllArgsConstructor
 @Service
 public class TeamServiceImpl implements TeamService {
@@ -54,7 +56,7 @@ public class TeamServiceImpl implements TeamService {
         organizerMember.setStatus(TeamStatus.APPROVED);
         teamMemberRepository.save(organizerMember);
 
-        team.setCreator(organizerMember);
+        team.setCreator(creatorUser);
         team = teamRepository.save(team);
 
         return mapToTeamResponse(team);
@@ -111,11 +113,10 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public void deleteTeam(UUID teamId, UUID userId) throws NotFoundException, ValidationException {
 
-        Team team = teamRepository.findByIdWithCreator(teamId)
+        Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
 
-
-        if (!team.getCreator().getUser().getId().equals(userId)) {
+        if (!team.getCreator().getId().equals(userId)) {
             throw new ValidationException(ErrorCode.FORBIDDEN);
         }
 
@@ -127,13 +128,26 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public List<TeamResponse> getTeamsByUser(UUID userId) {
+        // Get all team memberships for the user
         List<TeamMember> memberships = teamMemberRepository.findByUserId(userId);
+        
+        // Get all team IDs from memberships
         List<UUID> teamIds = memberships.stream()
                 .map(member -> member.getTeam().getId())
+                .distinct()
                 .toList();
-        List<Team> teams = teamRepository.findAllById(teamIds);
+        
+        if (teamIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        // Fetch all teams with their members in one query
+        List<Team> teams = teamRepository.findAllByIdWithMembers(teamIds);
+        
+        // Map to TeamResponse
         return teams.stream()
-                .map(this::mapToTeamResponse).toList();
+                .map(this::mapToTeamResponse)
+                .toList();
     }
 
 
@@ -153,7 +167,8 @@ public class TeamServiceImpl implements TeamService {
                 teamMember.getUser().getId(),
                 teamMember.getUser().getUsername(),
                 teamMember.getRole(),
-                teamMember.getStatus()
+                teamMember.getStatus(),
+                teamMember.getTeam().getId()
         );
     }
 
