@@ -19,8 +19,9 @@ public class EmailController {
     public String MockSendHtmlTeamRequestEmail() {
         try {
             UUID teamMemberId = UUID.fromString("9dd246b0-861e-405d-a2fd-543b30b8154d");
-            return emailService.sendHtmlTeamRequestEmail("Omar Organizer", "HyperCell", "A team for football enthusiasts",
+            emailService.sendHtmlTeamRequestEmail("Omar Organizer", "HyperCell", "A team for football enthusiasts",
                     "omar.saad@ieeecusb.org", "Omar Saad", teamMemberId);
+            return "Successfully sent HTML email to join team.";
 
         } catch (Exception e) {
             return "Failed to send email: " + e.getMessage();

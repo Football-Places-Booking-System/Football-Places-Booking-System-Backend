@@ -27,6 +27,8 @@ public enum ErrorCode {
     TEAM_MEMBER_ALREADY_EXISTS(402, "User is already a team member"),
     TEAM_MEMBER_NOT_FOUND(403, "Team member not found"),
     INVALID_TEAM_STATUS(404, "Team status is invalid"),
+    TEAM_MEMBER_ALREADY_INVITED(405, "User is already invited to the team"),
+    TEAM_MEMBER_RESPONSE_ALREADY_EXISTS(406, "Team member response already exists"),
 
     // ===== Place Errors =====
     INVALID_PLACE_NAME(500, "Place name is either empty or null"),
@@ -57,6 +59,9 @@ public enum ErrorCode {
     UNAUTHORIZED(903, "Unauthorized access"),
     FORBIDDEN(904, "Action is forbidden"),
     INTERNAL_ERROR(905, "Internal server error");
+
+    // ===== Email Errors =====
+//    EMAIL_SEND_FAILURE(1000, "Failed to send email");
 
     private final int code;
     private final String msg;
