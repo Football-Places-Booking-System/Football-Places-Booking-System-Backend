@@ -2,6 +2,9 @@ package hypercell.final_project.football_places_booking_system.service.Impl;
 
 import hypercell.final_project.football_places_booking_system.model.db.Team;
 import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
+import hypercell.final_project.football_places_booking_system.model.db.User;
+import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
+import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
 import hypercell.final_project.football_places_booking_system.repository.TeamRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
@@ -55,7 +58,7 @@ public class EmailServiceImpl {
             // Get invitee's name
             String toName = userRepository.findUsernameById(inviteeUserId);
             
-            // Get or create team member record
+            // Get a team member record
             TeamMember teamMember = teamMemberRepository.findByTeamIdAndUserId(teamId, inviteeUserId)
                     .orElseThrow(() -> new RuntimeException("Team member record not found"));
             
@@ -64,11 +67,13 @@ public class EmailServiceImpl {
             
         } catch (Exception e) {
             throw new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e);
+//            throw new RuntimeException(ErrorCode.EMAIL_SEND_FAILURE);
         }
     }
 
-//    public void sendHtmlTeamRequestEmail(String invitedByName, String teamName, String teamDescription, String email, String toName, UUID teamMemberId) {
-    public String sendHtmlTeamRequestEmail(String invitedByName, String teamName, String teamDescription, String email, String toName, UUID teamMemberId) {
+
+
+    public void sendHtmlTeamRequestEmail(String invitedByName, String teamName, String teamDescription, String email, String toName, UUID teamMemberId) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -94,42 +99,73 @@ public class EmailServiceImpl {
 
             mailSender.send(message);
 
-            return "Email sent successfully!";
+//            return "Email sent successfully!";
         }
         catch (Exception e) {
-            return e.getMessage();
+            throw new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e);
+//            return e.getMessage();
         }
 
     }
 
 
-    //    @RequestMapping("/send-html-email-test-api")
-    public String sendHtmlTeamRequestEmail() {
+    public void sendResponseToTeamMemberInvitation(TeamMember teamMember, TeamStatus request) {
+        try {
+            // Get team member details
+            String teamMemberName = userRepository.findUsernameById(teamMember.getUser().getId());
+            
+            // Get team details
+            Team team = teamRepository.findById(teamMember.getTeam().getId())
+                    .orElseThrow(() -> new RuntimeException("Team not found"));
+            String teamName = team.getName();
+            
+            // Get organizer details (assuming organizer is the one who invited the team member)
+            User organizer = userRepository.findById(teamMember.getInvitedBy().getId())
+                    .orElseThrow(() -> new RuntimeException("Team organizer not found"));
+            
+            String organizerName = organizer.getUserName();
+            String organizerEmail = organizer.getEmail();
+            
+            // Send the response email to the organizer who invited the team member
+            sendHtmlTeamResponseEmail(teamMemberName, teamName, organizerName, organizerEmail, request);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send team response email: " + e.getMessage(), e);
+        }
+    }
+
+    public void sendHtmlTeamResponseEmail(String teamMemberName, String teamName, String organizerName, String organizerEmail, TeamStatus responseStatus) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-            helper.setFrom("omarsaadelgharbawy@gmail.com");
-            helper.setTo("omar.saad@ieeecusb.org");
-            helper.setSubject("Java Test Email with Test API From Omar");
+            helper.setFrom("football.booking.system@gmail.com");
+            helper.setTo(organizerEmail);
+            
+            String subject = "Team Invitation " + (responseStatus == TeamStatus.APPROVED ? "Accepted" : "Rejected") + " - " + teamName;
+            helper.setSubject(subject);
 
             // Create Thymeleaf context with variables
             Context context = new Context();
-            context.setVariable("name", "User");
-            context.setVariable("confirmationLink", "http://localhost:8080/test");
+            context.setVariable("teamMemberName", teamMemberName);
+            context.setVariable("teamName", teamName);
+            context.setVariable("organizerName", organizerName);
+            context.setVariable("responseStatus", responseStatus);
+            context.setVariable("isAccepted", responseStatus == TeamStatus.APPROVED);
+            context.setVariable("statusText", responseStatus == TeamStatus.APPROVED ? "accepted" : "rejected");
+            context.setVariable("statusColor", responseStatus == TeamStatus.APPROVED ? "#27ae60" : "#e74c3c");
 
             // Process the template
-            String htmlContent = templateEngine.process("email-content", context);
+            String htmlContent = templateEngine.process("team-response-email-content", context);
             helper.setText(htmlContent, true);
-
-//            helper.addInline("database.png", new File("E:\\HyperCell\\WorkSpace\\Try_Repos\\javamail\\src\\main\\resources\\static\\RE.png"));
 
             mailSender.send(message);
 
-            return "success!";
         } catch (Exception e) {
-            return e.getMessage();
+            throw new RuntimeException("Failed to send team response email: " + e.getMessage(), e);
         }
     }
+
+
 
 }
