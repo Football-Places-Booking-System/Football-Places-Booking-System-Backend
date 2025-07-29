@@ -4,25 +4,29 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import hypercell.final_project.football_places_booking_system.model.enums.*;
+import org.springframework.stereotype.Service;
+
 import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.*;
-import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
-import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import hypercell.final_project.football_places_booking_system.model.db.Team;
 import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.db.User;
-import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberCreationRequest;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberInviteResponse;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberResponse;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberUpdateRequest;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamResponse;
 import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
 import hypercell.final_project.football_places_booking_system.repository.TeamRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import hypercell.final_project.football_places_booking_system.repository.RequestRepository;
 
 @Slf4j
 @AllArgsConstructor
@@ -33,6 +37,8 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     private final UserRepository userRepository;
     private final TeamServiceImpl teamService;
     private final EmailServiceImpl emailService;
+    private final RequestService requestService;
+    private final RequestRepository requestRepository; // Add this
 
 
     @Override
@@ -149,11 +155,13 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 user.getId(), teamId, TeamRole.PLAYER, invitedById
         );
 
-
         // 6. Create team member and save the result
         TeamMemberResponse teamMemberResponse = createTeamMember(req, invitedById);
         
-        // 7. Send the invitation email
+        // 7. Create Request entity for the invitation
+        requestService.createRequest(invitedById, user.getId(), RequestType.JOIN_TEAM_INVITATION);
+        
+        // 8. Send the invitation email
         log.info("Sending Team invitation email to: {}", email);
         emailService.sendRequestTOJoinTeam(invitedById, user.getId(), email, teamId);
 
@@ -194,9 +202,28 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         } else {
             throw new ValidationException(ErrorCode.INVALID_TEAM_STATUS);
         }
-        // save the team member
+        
+        // Save the team member
         teamMember = teamMemberRepository.save(teamMember);
-        // map to response
+        
+        // Update the Request entity status
+        ResponseStatus responseStatus = request == TeamStatus.APPROVED ? ResponseStatus.ACCEPTED : ResponseStatus.REJECTED;
+        
+        // Find the request by sender (inviter) and receiver (team member) and type
+        UUID inviterId = teamMember.getInvitedBy().getId();
+        UUID receiverId = teamMember.getUser().getId();
+        
+        // You might need to add a method to find and update the request
+        requestRepository.findBySenderIdAndReceiverIdAndRequestType(inviterId, receiverId, RequestType.JOIN_TEAM_INVITATION)
+                .ifPresent(existingRequest -> {
+                    try {
+                        requestService.updateRequestStatus(existingRequest.getId(), responseStatus);
+                    } catch (AppException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+        
+        // Map to response
         TeamMemberInviteResponse response = new TeamMemberInviteResponse(
                 teamMember.getId(),
                 teamMember.getRole(),
@@ -207,8 +234,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 teamMember.getTeam().getName()
         );
 
-        // send email notification to the organizer to tell him that the team member accepted or rejected the team invitation
-        // in
+        // send an email notification to the organizer to tell him that the team member accepted or rejected the team invitation
         emailService.sendResponseToTeamMemberInvitation(teamMember, request);
 
         return response;
