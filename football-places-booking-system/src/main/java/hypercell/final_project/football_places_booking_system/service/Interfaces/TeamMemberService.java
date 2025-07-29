@@ -6,7 +6,6 @@ import java.util.UUID;
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
-import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.*;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 
@@ -24,7 +23,7 @@ public interface TeamMemberService {
     public boolean isOrganizer(UUID userId, UUID teamId) throws NotFoundException;
     public TeamMemberResponse inviteByEmail(String email, UUID teamId, UUID invitedById) throws NotFoundException;
 
-    TeamMemberInvitationResponse respondToInvitation(UUID teamMemberId, TeamStatus request) throws AppException;
+    TeamMemberInviteResponse respondToInvitation(UUID teamMemberId, TeamStatus request) throws AppException;
 }
 
 

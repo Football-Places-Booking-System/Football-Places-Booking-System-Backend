@@ -10,8 +10,6 @@ import hypercell.final_project.football_places_booking_system.exception.Validati
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.*;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
-import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.model.db.Team;
@@ -148,7 +146,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     }
 
     @Override
-    public TeamMemberInvitationResponse respondToInvitation(UUID teamMemberId, TeamStatus request) throws AppException {
+    public TeamMemberInviteResponse respondToInvitation(UUID teamMemberId, TeamStatus request) throws AppException {
         TeamMember teamMember = teamMemberRepository.findById(teamMemberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
 
@@ -169,7 +167,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // save the team member
         teamMember = teamMemberRepository.save(teamMember);
         // map to response
-        TeamMemberInvitationResponse response = new TeamMemberInvitationResponse(
+        TeamMemberInviteResponse response = new TeamMemberInviteResponse(
                 teamMember.getId(),
                 teamMember.getRole(),
                 teamMember.getStatus(),
