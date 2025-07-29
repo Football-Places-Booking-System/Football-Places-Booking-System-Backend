@@ -121,6 +121,7 @@ public class TeamMemberController {
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header("Location", redirectUrl)
                     .build();
+
         } else {
             // For frontend API calls - return JSON response
             return ResponseEntity.ok(response);
