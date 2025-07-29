@@ -34,10 +34,6 @@ public class UserService {
             throw new ValidationException(ErrorCode.INVALID_USERNAME);
         }
 
-        if (userRepository.existsByUsername(userDTO.username())) {
-            throw new AlreadyExistsException(ErrorCode.USERNAME_ALREADY_EXISTS);
-        }
-
         if (userDTO.email() == null || userDTO.email().isEmpty()) {
             throw new ValidationException(ErrorCode.INVALID_EMAIL);
         }
@@ -49,14 +45,6 @@ public class UserService {
         if (userDTO.password() == null || userDTO.password().isEmpty()) {
             throw new ValidationException(ErrorCode.INVALID_PASSWORD);
         }
-
-//        if (userDTO.role() == null) {
-//            throw new ValidationException(ErrorCode.INVALID_USER_ROLE);
-//        }
-//
-//        if (userDTO.status() == null) {
-//            throw new ValidationException(ErrorCode.INVALID_USER_STATUS);
-//        }
 
         User user = new User();
         user.setUsername(userDTO.username());
@@ -131,9 +119,6 @@ public class UserService {
         }
 
         if (userDTO.username() != null && !userDTO.username().isEmpty()) {
-            if (userRepository.existsByUsername(userDTO.username())) {
-                throw new AlreadyExistsException(ErrorCode.USERNAME_ALREADY_EXISTS);
-            }
             user.setUsername(userDTO.username());
         }
 

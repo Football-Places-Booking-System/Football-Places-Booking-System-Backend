@@ -4,19 +4,20 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import hypercell.final_project.football_places_booking_system.model.enums.UserRole;
 import hypercell.final_project.football_places_booking_system.model.enums.UserStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,7 +39,6 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(unique = true)
     private String username;
 
     @Column(unique = true)

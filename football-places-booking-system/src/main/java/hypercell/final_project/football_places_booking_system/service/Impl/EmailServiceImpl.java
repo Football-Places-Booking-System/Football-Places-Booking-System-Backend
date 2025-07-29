@@ -76,7 +76,7 @@ public class EmailServiceImpl implements EmailService {
 
 
 
-    private void sendHtmlTeamRequestEmail(String invitedByName, String teamName, String teamDescription, String email, String toName, UUID teamMemberId) {
+    public void sendHtmlTeamRequestEmail(String invitedByName, String teamName, String teamDescription, String email, String toName, UUID teamMemberId) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);

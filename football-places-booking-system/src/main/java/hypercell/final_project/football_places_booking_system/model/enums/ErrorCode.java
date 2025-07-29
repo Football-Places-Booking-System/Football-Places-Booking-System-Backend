@@ -6,14 +6,13 @@ import lombok.Getter;
 public enum ErrorCode {
     // ===== User Errors =====
     INVALID_USERNAME(200, "Username is either empty or null"),
-    USERNAME_ALREADY_EXISTS(201, "Username already exists"),
-    INVALID_EMAIL(202, "Email is either empty or null"),
-    EMAIL_ALREADY_EXISTS(203, "Email already exists"),
-    INVALID_PASSWORD(204, "Password is either empty or null"),
-    INVALID_USER_ROLE(205, "User role is invalid"),
-    INVALID_USER_STATUS(206, "User status is invalid"),
-    USER_ALREADY_EXISTS(207, "User already exists"),
-    USER_NOT_FOUND(208, "User not found"),
+    INVALID_EMAIL(201, "Email is either empty or null"),
+    EMAIL_ALREADY_EXISTS(202, "Email already exists"),
+    INVALID_PASSWORD(203, "Password is either empty or null"),
+    INVALID_USER_ROLE(204, "User role is invalid"),
+    INVALID_USER_STATUS(205, "User status is invalid"),
+    USER_ALREADY_EXISTS(206, "User already exists"),
+    USER_NOT_FOUND(207, "User not found"),
 
     // ===== Team Errors =====
     INVALID_TEAM_NAME(300, "Team name is either empty or null"),
@@ -33,8 +32,9 @@ public enum ErrorCode {
     // ===== Place Errors =====
     INVALID_PLACE_NAME(500, "Place name is either empty or null"),
     INVALID_PLACE_LOCATION(501, "Place location is either empty or null"),
-    INVALID_PLACE_TYPE(502, "Place type is invalid"),
-    PLACE_NOT_FOUND(503, "Place not found"),
+    INVALID_PLACE_IMAGE_URL(502, "Place image URL is either empty or null"),
+    INVALID_PLACE_TYPE(503, "Place type is invalid"),
+    PLACE_NOT_FOUND(504, "Place not found"),
 
     // ===== Booking Match Errors =====
     INVALID_BOOKING_START_TIME(600, "Booking start time is invalid"),
