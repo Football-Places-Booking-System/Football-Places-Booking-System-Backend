@@ -11,5 +11,4 @@ import hypercell.final_project.football_places_booking_system.model.db.MatchPart
 // Provides methods to find participants by match or user.
 public interface MatchParticipantRepository extends JpaRepository<MatchParticipant, UUID> {
     List<MatchParticipant> findByBookingMatchId(UUID bookingMatchId);
-    List<MatchParticipant> findByUserId(UUID userId);
 }

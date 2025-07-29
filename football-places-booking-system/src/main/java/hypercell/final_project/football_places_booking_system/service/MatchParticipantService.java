@@ -1,16 +1,18 @@
 package hypercell.final_project.football_places_booking_system.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.repository.BookingMatchRepository;
+import hypercell.final_project.football_places_booking_system.repository.MatchParticipantRepository;
+import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
 import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
 import hypercell.final_project.football_places_booking_system.model.db.User;
-import hypercell.final_project.football_places_booking_system.model.dto.MatchParticipantDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -19,40 +21,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MatchParticipantService {
 
-    // In-memory lists for demo/testing.
-    private final List<MatchParticipant> dummyParticipants = new ArrayList<>();
-    private final List<User> dummyUsers = new ArrayList<>();
-
-    public void seedUsers(List<User> users) {
-        this.dummyUsers.clear();
-        this.dummyUsers.addAll(users);
-    }
-
     // Repositories for future production use.
-    // Private final MatchParticipantRepository matchParticipantRepository;
-    // private final UserRepository userRepository;
+     private final MatchParticipantRepository matchParticipantRepository;
+     private final UserRepository userRepository;
+     private final BookingMatchRepository bookingMatchRepository;
 
     // Invites a user to a match and adds them as a participant.
-    public MatchParticipant inviteParticipant(MatchParticipantDTO dto) {
-        // Dummy version
-        User user = dummyUsers.stream()
-                .filter(u -> u.getEmail().equals(dto.email()))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("User with email not found"));
-
-        MatchParticipant participant = MatchParticipant.builder()
-                .id(UUID.randomUUID()) // simulate ID
-                .bookingMatch(BookingMatch.builder().id(dto.bookingMatchId()).build())
-                .user(user)
-                .status(ParticipantStatus.INVITED)
-                .build();
-
-        dummyParticipants.add(participant);
-        return participant;
-
-        // Real version (uncomment when ready)
-        /*
-        User user = userRepository.findByEmail(dto.email())
+    public MatchParticipant inviteParticipant(MatchPartDTO dto) {
+        User user = userRepository.findByEmailIgnoreCase(dto.email())
                 .orElseThrow(() -> new EntityNotFoundException("User with email not found"));
 
         BookingMatch match = bookingMatchRepository.findById(dto.bookingMatchId())
@@ -65,23 +41,11 @@ public class MatchParticipantService {
                 .build();
 
         return matchParticipantRepository.save(participant);
-        */
+
     }
 
     // Updates the participant's status and response time.
     public MatchParticipant respondToInvitation(UUID participantId, ParticipantStatus status) {
-        // Dummy version
-        MatchParticipant p = dummyParticipants.stream()
-                .filter(mp -> mp.getId().equals(participantId))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("Participant not found"));
-
-        p.setStatus(status);
-        p.setRespondedAt(LocalDateTime.now());
-        return p;
-
-        // Real version (uncomment when ready)
-        /*
         MatchParticipant p = matchParticipantRepository.findById(participantId)
                 .orElseThrow(() -> new EntityNotFoundException("Participant not found"));
 
@@ -89,17 +53,10 @@ public class MatchParticipantService {
         p.setRespondedAt(LocalDateTime.now());
 
         return matchParticipantRepository.save(p);
-        */
     }
 
     // Returns all participants for a given match.
     public List<MatchParticipant> getByMatch(UUID matchId) {
-        // Dummy version
-        return dummyParticipants.stream()
-                .filter(p -> p.getBookingMatch().getId().equals(matchId))
-                .toList();
-
-        // Real version (uncomment when ready)
-        // return matchParticipantRepository.findByBookingMatchId(matchId);
+         return matchParticipantRepository.findByBookingMatchId(matchId);
     }
 }
