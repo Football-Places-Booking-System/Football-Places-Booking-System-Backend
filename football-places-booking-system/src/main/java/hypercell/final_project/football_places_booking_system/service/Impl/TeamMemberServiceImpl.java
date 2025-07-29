@@ -207,8 +207,8 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 teamMember.getTeam().getName()
         );
 
-        // send email notification to the organizer to tell him that the team member accepted or rejected the team invitation
-        // in
+        // send an email notification to the organizer to tell him that the team member accepted or rejected the team invitation
+        
         emailService.sendResponseToTeamMemberInvitation(teamMember, request);
 
         return response;
