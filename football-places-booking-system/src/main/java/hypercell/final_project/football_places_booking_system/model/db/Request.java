@@ -3,7 +3,7 @@ package hypercell.final_project.football_places_booking_system.model.db;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import hypercell.final_project.football_places_booking_system.model.enums.RequestStatus;
+import hypercell.final_project.football_places_booking_system.model.enums.ResponseStatus;
 import hypercell.final_project.football_places_booking_system.model.enums.RequestType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,20 +27,20 @@ import lombok.NoArgsConstructor;
 public class Request {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", updatable = false, nullable = false)
+    @Column(name = "id", updatable = true, nullable = false)
     private UUID id;
 
+    @Column(nullable = false, name = "send_time")
     private LocalDateTime sendTime;
+
+    @Column(nullable = true, name = "response_time")
     private LocalDateTime responseTime;
-
-    private String sendMessage;
-    private String response;
-
-    @Enumerated(EnumType.STRING)
-    private RequestStatus status;
 
     @Enumerated(EnumType.STRING)
     private RequestType requestType;
+
+    @Enumerated(EnumType.STRING)
+    private ResponseStatus status;
 
     @ManyToOne
     @JoinColumn(name = "sender_id")
