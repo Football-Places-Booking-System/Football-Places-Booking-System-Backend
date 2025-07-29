@@ -5,7 +5,7 @@ import hypercell.final_project.football_places_booking_system.model.enums.TeamSt
 
 import java.util.UUID;
 
-public record TeamMemberInvitationResponse(
+public record TeamMemberInviteResponse(
         UUID teamMemberId,
         TeamRole role,
         TeamStatus status,
