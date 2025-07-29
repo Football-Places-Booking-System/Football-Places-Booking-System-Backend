@@ -24,6 +24,9 @@ public interface TeamMemberService {
     public TeamMemberResponse inviteByEmail(String email, UUID teamId, UUID invitedById) throws AppException;
 
     TeamMemberInviteResponse respondToInvitation(UUID teamMemberId, TeamStatus request) throws AppException;
+
+    // Join team request methods
+    TeamMemberResponse requestToJoinTeam(UUID teamId, UUID userId) throws AppException;
+    List<TeamMemberResponse> getPendingJoinRequests(UUID teamId) throws AppException;
+    TeamMemberResponse respondToJoinRequest(UUID teamMemberId, TeamStatus response, UUID organizerId) throws AppException;
 }
-
-

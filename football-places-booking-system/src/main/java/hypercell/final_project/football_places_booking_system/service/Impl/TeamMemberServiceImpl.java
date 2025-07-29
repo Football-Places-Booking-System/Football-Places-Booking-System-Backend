@@ -11,13 +11,13 @@ import hypercell.final_project.football_places_booking_system.exception.Validati
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.*;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
+import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.model.db.Team;
 import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.db.User;
-import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
 import hypercell.final_project.football_places_booking_system.repository.TeamRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
@@ -212,5 +212,68 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         emailService.sendResponseToTeamMemberInvitation(teamMember, request);
 
         return response;
+    }
+
+    @Override
+    public TeamMemberResponse requestToJoinTeam(UUID teamId, UUID userId) throws AppException {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+
+        // Check if already a member
+        if (teamMemberRepository.existsByTeamAndUser(team, user)) {
+            throw new ValidationException(ErrorCode.TEAM_MEMBER_ALREADY_EXISTS);
+        }
+
+        TeamMember teamMember = TeamMember.builder()
+                .team(team)
+                .user(user)
+                .role(TeamRole.PLAYER)
+                .status(TeamStatus.PENDING)
+                .build();
+
+        teamMember = teamMemberRepository.save(teamMember);
+        return mapToTeamMemberResponse(teamMember);
+    }
+
+    @Override
+    public List<TeamMemberResponse> getPendingJoinRequests(UUID teamId) throws AppException {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
+
+        List<TeamMember> pendingMembers = teamMemberRepository.findByTeamAndStatus(team, TeamStatus.PENDING);
+        return pendingMembers.stream()
+                .map(this::mapToTeamMemberResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public TeamMemberResponse respondToJoinRequest(UUID teamMemberId, TeamStatus response, UUID organizerId) throws AppException {
+        TeamMember teamMember = teamMemberRepository.findById(teamMemberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
+
+        Team team = teamMember.getTeam();
+
+        // Only team creator (organizer) can respond
+        if (!team.getCreator().getId().equals(organizerId)) {
+            throw new ValidationException(ErrorCode.FORBIDDEN);
+        }
+
+        // Ensure request is still pending
+        if (teamMember.getStatus() != TeamStatus.PENDING) {
+            throw new ValidationException(ErrorCode.INVALID_TEAM_STATUS);
+        }
+
+        // Accept/Reject
+        if (response == TeamStatus.APPROVED || response == TeamStatus.REJECTED) {
+            teamMember.setStatus(response);
+        } else {
+            throw new ValidationException(ErrorCode.INVALID_TEAM_STATUS);
+        }
+
+        teamMemberRepository.save(teamMember);
+        return mapToTeamMemberResponse(teamMember);
     }
 }
