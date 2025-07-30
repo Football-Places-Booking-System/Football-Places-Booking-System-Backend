@@ -2,6 +2,7 @@ package hypercell.final_project.football_places_booking_system.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,10 +11,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import hypercell.final_project.football_places_booking_system.exception.AppException;
+import hypercell.final_project.football_places_booking_system.exception.InvalidCredentialsException;
 import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.AuthDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.LoginDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.UserDTO;
+import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.service.JwtService;
 import hypercell.final_project.football_places_booking_system.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -36,19 +39,23 @@ public class AuthenticationController {
 
         String token = jwtService.generateToken(authenticatedUser);
 
-        System.out.println("Called Register Controller");
-
         return ResponseEntity.ok(new AuthDTO(authenticatedUser.getId(), token, authenticatedUser.getRole()));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthDTO> login(@RequestBody LoginDTO request) {
-        Authentication auth = authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(request.email(), request.password()));
-        User user = (User) auth.getPrincipal();
-        
-        String token = jwtService.generateToken(user);
+    public ResponseEntity<AuthDTO> login(@RequestBody LoginDTO request) throws AppException {
 
-        return ResponseEntity.ok(new AuthDTO(user.getId(), token, user.getRole()));
+        try {
+            Authentication auth = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(request.email(), request.password()));
+            User user = (User) auth.getPrincipal();
+            
+            String token = jwtService.generateToken(user);
+
+            return ResponseEntity.ok(new AuthDTO(user.getId(), token, user.getRole()));
+        } 
+        catch (BadCredentialsException e) {
+            throw new InvalidCredentialsException(ErrorCode.INVALID_CREDENTIALS);
+        }
     }
 }

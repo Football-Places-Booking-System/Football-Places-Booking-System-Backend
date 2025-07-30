@@ -4,25 +4,29 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+
 import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.*;
-import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
-import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
-import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import hypercell.final_project.football_places_booking_system.model.db.Team;
 import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.db.User;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberCreationRequest;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberInviteResponse;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberResponse;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberUpdateRequest;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamResponse;
+import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
+import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
+import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
 import hypercell.final_project.football_places_booking_system.repository.TeamRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @AllArgsConstructor
@@ -133,7 +137,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // 3. Check if the inviter is the team creator or an organizer
         if (!team.getCreator().getId().equals(invitedById) && 
             !teamMemberRepository.existsByUserIdAndTeamIdAndRole(
-                invitedById, teamId, TeamRole.ORGANIZER.name())) {
+                invitedById, teamId, TeamRole.ORGANIZER)) {
             log.warn("User {} is not authorized to invite members to team {}", invitedById, teamId);
             throw new ValidationException(ErrorCode.FORBIDDEN);
         }

@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Repository;
 import hypercell.final_project.football_places_booking_system.model.db.Team;
 
 @Repository
-public interface TeamRepository extends JpaRepository<Team, UUID> {
+public interface TeamRepository extends JpaRepository<Team, UUID>, JpaSpecificationExecutor<Team>{
     boolean existsByNameIgnoreCase(String name);
     List<Team> findByCreatorId(UUID creatorId);
     String findTeamNameById(UUID teamId);

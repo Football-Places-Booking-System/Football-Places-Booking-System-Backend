@@ -14,6 +14,7 @@ import hypercell.final_project.football_places_booking_system.exception.AppExcep
 import hypercell.final_project.football_places_booking_system.exception.NoDataException;
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
+import hypercell.final_project.football_places_booking_system.exception.NoContentException;
 import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.ResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.UserDTO;
@@ -72,7 +73,7 @@ public class UserService {
         );
     }
 
-    public Page<UserDTO> filterUsers(String email, UserRole role, UserStatus status, String username, Pageable pageable) {
+    public Page<UserDTO> filterUsers(String email, UserRole role, UserStatus status, String username, Pageable pageable) throws AppException {
         Specification<User> spec = (root, query, cb) -> cb.conjunction(); 
 
         if (email != null && !email.isEmpty()) {
@@ -96,6 +97,10 @@ public class UserService {
         }
 
         Page<User> users = userRepository.findAll(spec, pageable);
+
+        if (users.isEmpty()) {
+            throw new NoContentException(ErrorCode.NO_CONTENT);
+        }
 
         return users.map(user -> new UserDTO(
             user.getId(),

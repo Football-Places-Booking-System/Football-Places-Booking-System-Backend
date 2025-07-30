@@ -3,21 +3,27 @@ package hypercell.final_project.football_places_booking_system.service.Impl;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
 import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
 import hypercell.final_project.football_places_booking_system.exception.AppException;
+import hypercell.final_project.football_places_booking_system.exception.NoContentException;
+import hypercell.final_project.football_places_booking_system.exception.NoDataException;
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
-import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import hypercell.final_project.football_places_booking_system.model.db.Team;
 import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.db.User;
+import hypercell.final_project.football_places_booking_system.model.dto.ResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamCreationRequest;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberResponse;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamResponse;
+import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
@@ -25,8 +31,6 @@ import hypercell.final_project.football_places_booking_system.repository.TeamRep
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamService;
 import lombok.AllArgsConstructor;
-
-import java.util.Collections;
 
 @AllArgsConstructor
 @Service
@@ -39,30 +43,47 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public TeamResponse createTeam(TeamCreationRequest teamCreationRequest, UUID creatorid) throws AppException {
+        User creatorUser = userRepository.findById(creatorid).orElseThrow();
+
+        if (creatorUser == null) {
+            throw new NotFoundException(ErrorCode.USER_NOT_FOUND);
+        }
+
         Team team = new Team();
+
+        if (teamCreationRequest.name() == null || teamCreationRequest.name().isEmpty()) {
+            throw new ValidationException(ErrorCode.INVALID_TEAM_NAME);
+        }
+
         if (teamRepository.existsByNameIgnoreCase(teamCreationRequest.name())) {
             throw new AlreadyExistsException(ErrorCode.TEAM_ALREADY_EXISTS);
         }
+
+        if (teamCreationRequest.description() == null || teamCreationRequest.description().isEmpty()) {
+            throw new ValidationException(ErrorCode.INVALID_TEAM_DESCRIPTION);
+        }
+
         team.setName(teamCreationRequest.name());
         team.setDescription(teamCreationRequest.description());
+        team.setCreator(creatorUser);
+
         team = teamRepository.save(team);
-        User creatorUser = userRepository.findById(creatorid).orElseThrow();
 
         TeamMember organizerMember = new TeamMember();
+
+        organizerMember.setRole(TeamRole.ORGANIZER);
+        organizerMember.setStatus(TeamStatus.APPROVED);
         organizerMember.setUser(creatorUser);
         organizerMember.setTeam(team);
-        organizerMember.setRole(TeamRole.ORGANIZER);
-        //user is automatically organizer when creating a team
-        organizerMember.setStatus(TeamStatus.APPROVED);
+
         teamMemberRepository.save(organizerMember);
 
-        team.setCreator(creatorUser);
+        team.getTeamMembers().add(organizerMember);
+
         team = teamRepository.save(team);
 
         return mapToTeamResponse(team);
     }
-    //The team creation method creates a team by description and name and automatically adds the creator as an organizer.
-    //also doesnt allow for duplicate team names
 
     @Override
     public TeamResponse getTeamById(UUID id) throws NotFoundException {
@@ -71,38 +92,40 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public List<TeamResponse> getAllTeams() {
-        return teamRepository.findAll().stream()
-                .map(this::mapToTeamResponse)
-                .toList();
-    }
+    public Page<TeamResponse> filterTeams(String name, String description, Pageable pageable) throws AppException {
+        Specification<Team> spec = (root, query, cb) -> cb.conjunction();
 
-    @Override
-    public TeamMemberResponse invitePlayer(UUID teamid, String email, User inviter) throws NotFoundException, AlreadyExistsException, ValidationException {
-        Team team = teamRepository.getById(teamid);
-        User invitee = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
-        if (teamMemberRepository.existsByTeamAndUser(team, invitee)) {
-            throw new AlreadyExistsException(ErrorCode.TEAM_MEMBER_ALREADY_EXISTS);
+        if (name != null && !name.isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
         }
-        //    User invitee = userRepository.findByEmail(email);
-        // if (invitee == null) {
-        //     throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-        // }
 
-        validateOrganizerRole(team, inviter);
-        TeamMember invitation = createInvitation(team, invitee, inviter);
-        return mapToTeamMemberResponse(invitation);
+        if (description != null && !description.isEmpty()) {
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("description")), "%" + description.toLowerCase() + "%"));
+        }
+
+        Page<Team> teams = teamRepository.findAll(spec, pageable);
+
+        if (teams.isEmpty()) {
+            throw new NoContentException(ErrorCode.NO_CONTENT);
+        }
+
+        return teams.map(this::mapToTeamResponse);
     }
 
     @Override
-    public TeamResponse updateTeam(UUID id, TeamCreationRequest teamCreationRequest, UUID userId) throws NotFoundException {
+    public TeamResponse updateTeam(UUID id, TeamCreationRequest teamCreationRequest) throws AppException {
         Team team = teamRepository.findById(id).orElseThrow( ()-> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
 
-        if (teamCreationRequest.name() != null) {
+        if (teamCreationRequest.name() == null && teamCreationRequest.description() == null) {
+            throw new NoDataException(ErrorCode.NO_DATA);
+        }
+
+        if (teamCreationRequest.name() != null && !teamCreationRequest.name().isEmpty()) {
             team.setName(teamCreationRequest.name());
         }
-        if (teamCreationRequest.description() != null) {
+        if (teamCreationRequest.description() != null && !teamCreationRequest.description().isEmpty()) {
             team.setDescription(teamCreationRequest.description());
         }
 
@@ -111,46 +134,43 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public void deleteTeam(UUID teamId, UUID userId) throws NotFoundException, ValidationException {
-
+    public ResponseEntity<ResponseDTO> deleteTeam(UUID teamId) throws AppException {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
 
-        if (!team.getCreator().getId().equals(userId)) {
-            throw new ValidationException(ErrorCode.FORBIDDEN);
-        }
-
-        teamMemberRepository.deleteAllByTeamId(teamId);
-
-
         teamRepository.delete(team);
+
+        return ResponseEntity.ok(new ResponseDTO(teamId, "Team deleted successfully"));
     }
 
     @Override
-    public List<TeamResponse> getTeamsByUser(UUID userId) {
-        // Get all team memberships for the user
-        List<TeamMember> memberships = teamMemberRepository.findByUserId(userId);
-        
-        // Get all team IDs from memberships
-        List<UUID> teamIds = memberships.stream()
-                .map(member -> member.getTeam().getId())
-                .distinct()
-                .toList();
-        
-        if (teamIds.isEmpty()) {
-            return Collections.emptyList();
+    public Page<TeamResponse> getTeamsByUser(UUID userId, int page, int size) throws AppException {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<TeamMember> pageOfMemberships = teamMemberRepository.findByUserIdAndStatus(userId, TeamStatus.APPROVED, pageable);
+
+        if (pageOfMemberships.isEmpty()) {
+            throw new NoContentException(ErrorCode.NO_CONTENT);
         }
-        
-        // Fetch all teams with their members in one query
-        List<Team> teams = teamRepository.findAllByIdWithMembers(teamIds);
-        
-        // Map to TeamResponse
-        return teams.stream()
-                .map(this::mapToTeamResponse)
-                .toList();
+
+        return pageOfMemberships
+                .map(teamMember -> mapToTeamResponse(teamMember.getTeam()));
     }
 
+    private TeamMemberResponse mapToTeamMemberResponse(TeamMember teamMember) {
+        return new TeamMemberResponse(
+                teamMember.getUser().getId(),
+                teamMember.getUser().getUserName(),
+                teamMember.getRole(),
+                teamMember.getStatus(),
+                teamMember.getTeam().getId()
+        );
+    }
 
+    private List<TeamMemberResponse> mapTeamMembers(List<TeamMember> members) {
+        return members.stream()
+                .map(member -> mapToTeamMemberResponse(member))
+                .toList();
+    }
 
     private TeamResponse mapToTeamResponse(Team team) {
         return TeamResponse.builder()
@@ -161,41 +181,5 @@ public class TeamServiceImpl implements TeamService {
                 .createdAt(team.getCreatedAt())
                 .members(mapTeamMembers(team.getTeamMembers()))
                 .build();
-    }
-    private TeamMemberResponse mapToTeamMemberResponse(TeamMember teamMember) {
-        return new TeamMemberResponse(
-                teamMember.getUser().getId(),
-                teamMember.getUser().getUsername(),
-                teamMember.getRole(),
-                teamMember.getStatus(),
-                teamMember.getTeam().getId()
-        );
-    }
-
-    private List<TeamMemberResponse> mapTeamMembers(List<TeamMember> members) {
-        return members.stream()
-                .map(member -> TeamMemberResponse.builder()
-                        .userId(member.getUser().getId())
-                        .userName(member.getUser().getUsername())
-                        .role(member.getRole())
-                        .status(member.getStatus())
-                        .build())
-                .toList();
-    }
-
-    private TeamMember createInvitation(Team team, User invitee, User inviter) {
-        TeamMember invitation = TeamMember.builder()
-                .team(team)
-                .user(invitee)
-                .role(TeamRole.PLAYER)
-                .status(TeamStatus.PENDING)
-                .invitedBy(inviter)
-                .build();
-        return teamMemberRepository.save(invitation);
-    }
-    private void validateOrganizerRole(Team team, User user) throws ValidationException {
-        teamMemberRepository.findByTeamAndUser(team, user)
-                .filter(member -> member.getRole().equals(TeamRole.ORGANIZER))
-                .orElseThrow(() -> new ValidationException(ErrorCode.FORBIDDEN));
     }
 }

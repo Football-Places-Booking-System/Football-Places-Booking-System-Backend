@@ -31,4 +31,9 @@ public class ExceptionHandlerController {
     public ResponseEntity<AppException.Data> handleAppException(AlreadyExistsException e) {
         return new ResponseEntity<>(e.getData(), HttpStatus.CONFLICT);
     }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<AppException.Data> handleAppException(InvalidCredentialsException e) {
+        return new ResponseEntity<>(e.getData(), HttpStatus.UNAUTHORIZED);
+    }
 }

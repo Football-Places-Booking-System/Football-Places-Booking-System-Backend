@@ -58,10 +58,11 @@ public enum ErrorCode {
     NO_DATA(902, "No data provided"),
     UNAUTHORIZED(903, "Unauthorized access"),
     FORBIDDEN(904, "Action is forbidden"),
-    INTERNAL_ERROR(905, "Internal server error");
+    INTERNAL_ERROR(905, "Internal server error"),
+    INVALID_CREDENTIALS(906, "Invalid credentials provided");
 
     // ===== Email Errors =====
-//    EMAIL_SEND_FAILURE(1000, "Failed to send email");
+    // EMAIL_SEND_FAILURE(1000, "Failed to send email");
 
     private final int code;
     private final String msg;
