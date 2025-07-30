@@ -25,63 +25,52 @@ public class BookingMatchService {
     private final TeamRepository teamRepository;
     private final TeamMemberService teamMemberService;
 
-    public BookingMatch createBookingMatch(BookingDTO dto) throws AppException {
-        // Validate user ID
-        if (dto.userId() == null) {
-            throw new ValidationException(ErrorCode.INVALID_REQUEST_TYPE);
-        }
+    /**
+     * Create a new match booking. Only ORGANIZER can book a match.
+     */
+    public BookingMatch createBookingMatch(BookingDTO dto, UUID userId) throws AppException {
 
-        // Validate team ID
+        // Validate inputs
         if (dto.teamId() == null) {
             throw new ValidationException(ErrorCode.INVALID_TEAM_ID);
         }
-
-        // Validate place ID
         if (dto.placeId() == null) {
             throw new ValidationException(ErrorCode.INVALID_PLACE_ID);
         }
-
-        // Validate start time
         if (dto.startTime() == null) {
             throw new ValidationException(ErrorCode.INVALID_BOOKING_START_TIME);
         }
-
-        // Validate end time
-        if (dto.endTime() == null) {
+        if (dto.endTime() == null || dto.startTime().isAfter(dto.endTime())) {
             throw new ValidationException(ErrorCode.INVALID_BOOKING_END_TIME);
         }
 
-        // Validate time order
-        if (dto.startTime().isAfter(dto.endTime()) || dto.startTime().isEqual(dto.endTime())) {
-            throw new ValidationException(ErrorCode.INVALID_BOOKING_END_TIME);
-        }
+        // Ensure the user exists
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
-        // Check if user is organizer
-        try {
-            if (!teamMemberService.isOrganizer(dto.userId(), dto.teamId())) {
-                throw new ForbiddenActionException();
-            }
-        } catch (NotFoundException e) {
-            throw new NotFoundException(ErrorCode.USER_NOT_FOUND);
+        // Ensure the user is an organizer
+        if (!teamMemberService.isOrganizer(user.getId(), dto.teamId())) {
+            throw new ForbiddenActionException();
         }
 
         var place = placeRepository.findById(dto.placeId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PLACE_NOT_FOUND));
-        var user = userRepository.findById(dto.userId())
-                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+
         var team = teamRepository.findById(dto.teamId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
 
-        // Check time slot availability
+        // Ensure time slot is available
         boolean isAvailable = bookingMatchRepository.findByPlaceId(place.getId()).stream()
                 .noneMatch(existing ->
                         existing.getStartTime().isBefore(dto.endTime()) &&
-                                existing.getEndTime().isAfter(dto.startTime()));
+                                existing.getEndTime().isAfter(dto.startTime())
+                );
 
         if (!isAvailable) {
             throw new ValidationException(ErrorCode.TIME_SLOT_UNAVAILABLE);
         }
 
+        // Save booking
         BookingMatch match = new BookingMatch();
         match.setPlace(place);
         match.setUser(user);
@@ -93,25 +82,19 @@ public class BookingMatchService {
         return bookingMatchRepository.save(match);
     }
 
+
+    /**
+     * Cancel a booking (Only ORGANIZER can cancel).
+     */
     public void cancelBooking(UUID matchId, UUID userId) throws AppException {
-        // Validate match ID
         if (matchId == null) {
             throw new ValidationException(ErrorCode.INVALID_BOOKING_MATCH_ID);
         }
 
-        // Validate user ID
-        if (userId == null) {
-            throw new ValidationException(ErrorCode.INVALID_REQUEST_TYPE);
-        }
-
         BookingMatch match = getById(matchId);
-        
-        try {
-            if (!teamMemberService.isOrganizer(userId, match.getTeam().getId())) {
-                throw new ForbiddenActionException();
-            }
-        } catch (NotFoundException e) {
-            throw new NotFoundException(ErrorCode.USER_NOT_FOUND);
+
+        if (!teamMemberService.isOrganizer(userId, match.getTeam().getId())) {
+            throw new ForbiddenActionException();
         }
 
         match.setStatus(MatchStatus.CANCELLED);
@@ -132,7 +115,6 @@ public class BookingMatchService {
             throw new ValidationException(ErrorCode.INVALID_REQUEST_TYPE);
         }
 
-        // Validate user exists
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
@@ -144,7 +126,6 @@ public class BookingMatchService {
             throw new ValidationException(ErrorCode.INVALID_TEAM_ID);
         }
 
-        // Validate team exists
         teamRepository.findById(teamId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
 
@@ -156,7 +137,6 @@ public class BookingMatchService {
             throw new ValidationException(ErrorCode.INVALID_PLACE_ID);
         }
 
-        // Validate place exists
         placeRepository.findById(placeId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PLACE_NOT_FOUND));
 

@@ -53,6 +53,7 @@ public enum ErrorCode {
     MATCH_PARTICIPANT_NOT_FOUND(702, "Match participant not found"),
     MATCH_PARTICIPANT_ALREADY_EXISTS(703, "User is already a participant in this match"),
     INVALID_PARTICIPANT_EMAIL(704, "Participant email is either empty or null"),
+    MATCH_PARTICIPANT_ALREADY_RESPONDED(705, "Participant has already responded to the invitation"),
 
     // ===== Request Errors =====
     INVALID_REQUEST_TYPE(800, "Request type is invalid"),
