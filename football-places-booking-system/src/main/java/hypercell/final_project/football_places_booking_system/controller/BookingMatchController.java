@@ -1,10 +1,10 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import hypercell.final_project.football_places_booking_system.exception.AppException;
+import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingResponseDTO;
@@ -13,6 +13,8 @@ import hypercell.final_project.football_places_booking_system.service.BookingMat
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import static hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper.toResponseDTO;
@@ -24,17 +26,36 @@ public class BookingMatchController {
 
     private final BookingMatchService bookingMatchService;
 
+    /**
+     * Create a new booking match.
+     * Only ORGANIZERs in the team can create bookings.
+     */
     @PostMapping
-    public ResponseEntity<BookingResponseDTO> create(@RequestBody BookingDTO dto) throws AppException {
-        BookingMatch created = bookingMatchService.createBookingMatch(dto);
+    public ResponseEntity<BookingResponseDTO> create(
+            @RequestBody BookingDTO dto,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws AppException {
+
+        // Get the logged-in user from the token
+        User currentUser = (User) userDetails;
+
+        BookingMatch created = bookingMatchService.createBookingMatch(dto, currentUser.getId());
         return new ResponseEntity<>(toResponseDTO(created), HttpStatus.CREATED);
     }
 
+    /**
+     * Cancel a booking match.
+     * Only ORGANIZERs in the team can cancel bookings.
+     */
     @PutMapping("/{id}/cancel")
     public ResponseEntity<String> cancel(
             @PathVariable UUID id,
-            @RequestParam UUID userId) throws AppException {
-        bookingMatchService.cancelBooking(id, userId);
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws AppException {
+
+        User currentUser = (User) userDetails;
+
+        bookingMatchService.cancelBooking(id, currentUser.getId());
         return ResponseEntity.ok("Match cancelled");
     }
 
@@ -79,5 +100,4 @@ public class BookingMatchController {
                         .toList()
         );
     }
-
 }
