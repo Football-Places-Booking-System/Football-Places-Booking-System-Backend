@@ -15,10 +15,11 @@ public enum ErrorCode {
     USER_NOT_FOUND(207, "User not found"),
 
     // ===== Team Errors =====
-    INVALID_TEAM_NAME(300, "Team name is either empty or null"),
-    INVALID_TEAM_DESCRIPTION(301, "Team description is either empty or null"),
-    TEAM_NOT_FOUND(302, "Team not found"),
-    TEAM_ALREADY_EXISTS(303, "Team already exists"),
+    INVALID_TEAM_ID(300, "Team ID is either empty or null"),
+    INVALID_TEAM_NAME(301, "Team name is either empty or null"),
+    INVALID_TEAM_DESCRIPTION(302, "Team description is either empty or null"),
+    TEAM_NOT_FOUND(303, "Team not found"),
+    TEAM_ALREADY_EXISTS(304, "Team already exists"),
 
     // ===== Team Member Errors =====
     INVALID_TEAM_MEMBER_ROLE(400, "Team member role is invalid"),
@@ -30,21 +31,28 @@ public enum ErrorCode {
     TEAM_MEMBER_RESPONSE_ALREADY_EXISTS(406, "Team member response already exists"),
 
     // ===== Place Errors =====
-    INVALID_PLACE_NAME(500, "Place name is either empty or null"),
-    INVALID_PLACE_LOCATION(501, "Place location is either empty or null"),
+    INVALID_PLACE_ID(500, "Place ID is either empty or null"),
+    INVALID_PLACE_NAME(501, "Place name is either empty or null"),
     INVALID_PLACE_IMAGE_URL(502, "Place image URL is either empty or null"),
-    INVALID_PLACE_TYPE(503, "Place type is invalid"),
-    PLACE_NOT_FOUND(504, "Place not found"),
+    INVALID_PLACE_LOCATION(503, "Place location is either empty or null"),
+    INVALID_PLACE_TYPE(504, "Place type is invalid"),
+    PLACE_NOT_FOUND(505, "Place not found"),
 
     // ===== Booking Match Errors =====
-    INVALID_BOOKING_START_TIME(600, "Booking start time is invalid"),
-    INVALID_BOOKING_END_TIME(601, "Booking end time is invalid"),
-    INVALID_MATCH_STATUS(602, "Booking match status is invalid"),
-    BOOKING_MATCH_NOT_FOUND(603, "Booking match not found"),
+    INVALID_BOOKING_MATCH_ID(600, "Booking match ID is either empty or null"),
+    INVALID_BOOKING_START_TIME(601, "Booking start time is invalid"),
+    INVALID_BOOKING_END_TIME(602, "Booking end time is invalid"),
+    INVALID_MATCH_STATUS(603, "Booking match status is invalid"),
+    BOOKING_MATCH_NOT_FOUND(604, "Booking match not found"),
+    TIME_SLOT_UNAVAILABLE(605, "The selected time slot is already booked for this place"),
+    UNAUTHORIZED_BOOKING_ACTION(606, "Only team organizers can perform this action"),
 
     // ===== Match Participant Errors =====
-    INVALID_PARTICIPANT_STATUS(700, "Participant status is invalid"),
-    MATCH_PARTICIPANT_NOT_FOUND(701, "Match participant not found"),
+    INVALID_PARTICIPANT_ID (700, "Participant ID is either empty or null"),
+    INVALID_PARTICIPANT_STATUS(701, "Participant status is invalid"),
+    MATCH_PARTICIPANT_NOT_FOUND(702, "Match participant not found"),
+    MATCH_PARTICIPANT_ALREADY_EXISTS(703, "User is already a participant in this match"),
+    INVALID_PARTICIPANT_EMAIL(704, "Participant email is either empty or null"),
 
     // ===== Request Errors =====
     INVALID_REQUEST_TYPE(800, "Request type is invalid"),

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingResponseDTO;
@@ -24,7 +25,7 @@ public class BookingMatchController {
     private final BookingMatchService bookingMatchService;
 
     @PostMapping
-    public ResponseEntity<BookingResponseDTO> create(@RequestBody BookingDTO dto) {
+    public ResponseEntity<BookingResponseDTO> create(@RequestBody BookingDTO dto) throws AppException {
         BookingMatch created = bookingMatchService.createBookingMatch(dto);
         return new ResponseEntity<>(toResponseDTO(created), HttpStatus.CREATED);
     }
@@ -32,19 +33,19 @@ public class BookingMatchController {
     @PutMapping("/{id}/cancel")
     public ResponseEntity<String> cancel(
             @PathVariable UUID id,
-            @RequestParam UUID userId) {
+            @RequestParam UUID userId) throws AppException {
         bookingMatchService.cancelBooking(id, userId);
         return ResponseEntity.ok("Match cancelled");
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookingResponseDTO> getById(@PathVariable UUID id) {
+    public ResponseEntity<BookingResponseDTO> getById(@PathVariable UUID id) throws AppException {
         BookingMatch match = bookingMatchService.getById(id);
         return ResponseEntity.ok(toResponseDTO(match));
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<BookingResponseDTO>> getByUser(@PathVariable UUID userId) {
+    public ResponseEntity<List<BookingResponseDTO>> getByUser(@PathVariable UUID userId) throws AppException {
         return ResponseEntity.ok(
                 bookingMatchService.getByUser(userId).stream()
                         .map(BookingMapper::toResponseDTO)
@@ -53,7 +54,7 @@ public class BookingMatchController {
     }
 
     @GetMapping("/place/{placeId}")
-    public ResponseEntity<List<BookingResponseDTO>> getByPlace(@PathVariable UUID placeId) {
+    public ResponseEntity<List<BookingResponseDTO>> getByPlace(@PathVariable UUID placeId) throws AppException {
         return ResponseEntity.ok(
                 bookingMatchService.getByPlace(placeId).stream()
                         .map(BookingMapper::toResponseDTO)
@@ -62,7 +63,7 @@ public class BookingMatchController {
     }
 
     @GetMapping("/team/{teamId}")
-    public ResponseEntity<List<BookingResponseDTO>> getByTeam(@PathVariable UUID teamId) {
+    public ResponseEntity<List<BookingResponseDTO>> getByTeam(@PathVariable UUID teamId) throws AppException {
         return ResponseEntity.ok(
                 bookingMatchService.getByTeam(teamId).stream()
                         .map(BookingMapper::toResponseDTO)
