@@ -61,7 +61,7 @@ public class BookingMatchService {
         return bookingMatchRepository.save(match);
     }
 
-    public BookingMatch cancelBooking(UUID matchId, UUID userId) {
+    public void cancelBooking(UUID matchId, UUID userId) {
         BookingMatch match = getById(matchId);
         try {
             if (!teamMemberService.isOrganizer(userId, match.getTeam().getId())) {
@@ -72,7 +72,7 @@ public class BookingMatchService {
         }
 
         match.setStatus(MatchStatus.CANCELLED);
-        return bookingMatchRepository.save(match);
+        bookingMatchRepository.save(match);
     }
 
     public BookingMatch getById(UUID id) {
