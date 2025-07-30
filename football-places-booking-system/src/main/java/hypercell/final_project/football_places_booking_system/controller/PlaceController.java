@@ -1,21 +1,27 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
-import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import hypercell.final_project.football_places_booking_system.model.db.Place;
+import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.model.dto.PlaceDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.ResponseDTO;
+import hypercell.final_project.football_places_booking_system.model.enums.PlaceType;
 import hypercell.final_project.football_places_booking_system.service.PlaceService;
 import lombok.RequiredArgsConstructor;
 
@@ -27,33 +33,42 @@ public class PlaceController {
 
     private final PlaceService placeService;
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
+    public ResponseEntity<PlaceDTO> create(@RequestBody PlaceDTO placeDto) throws AppException {
+        PlaceDTO placeDTO = placeService.createPlace(placeDto);
+        
+        return new ResponseEntity<>(placeDTO, HttpStatus.CREATED);
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<Place> getPlaceById(@PathVariable UUID id) {
-        Place place = placeService.getPlaceById(id);
+    public ResponseEntity<PlaceDTO> getPlaceById(@PathVariable UUID id) throws AppException {
+        PlaceDTO place = placeService.getPlaceById(id);
         return new ResponseEntity<>(place, HttpStatus.OK);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<Place>> getAllPlaces() {
-        List<Place> places = placeService.getAllPlaces();
-        return new ResponseEntity<>(places, HttpStatus.OK);
+    public Page<PlaceDTO> filterPlaces(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) PlaceType placeType,
+            @RequestParam(required = false) String imageUrl,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) throws AppException {
+        Pageable pageable = PageRequest.of(page, size);
+        return placeService.filterPlaces(name, location, placeType, imageUrl, pageable);
     }
 
-    @PostMapping
-    public ResponseEntity<Place> create(@RequestBody PlaceDTO placeDto) {
-        Place place = placeService.createPlace(placeDto);
-        return new ResponseEntity<>(place, HttpStatus.CREATED);
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{id}")
+    public ResponseEntity<ResponseDTO> updatePlace(@PathVariable UUID id, @RequestBody PlaceDTO updatedPlace) throws AppException {
+        return placeService.updatePlace(id, updatedPlace);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Place> updatePlace(@PathVariable UUID id, @RequestBody Place updatedPlace) {
-        Place place = placeService.updatePlace(id, updatedPlace);
-        return new ResponseEntity<>(place, HttpStatus.OK);
-    }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePlace(@PathVariable UUID id) {
-        placeService.deletePlace(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<ResponseDTO> deletePlace(@PathVariable UUID id) throws AppException{
+        return placeService.deletePlace(id);
     }
 }
