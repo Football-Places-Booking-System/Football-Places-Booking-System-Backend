@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import hypercell.final_project.football_places_booking_system.model.db.Team;
 import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.db.User;
+import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 
 public interface TeamMemberRepository extends JpaRepository<TeamMember, UUID> {
     Optional<TeamMember> findByTeamAndUser(Team team, User user);
@@ -23,6 +24,7 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, UUID> {
     boolean existsByTeamAndUser(Team team, User user);
     List<TeamMember> getTeamMemberByTeam(Team team);
     List<TeamMember> findByUserId(UUID userId);
+    List<TeamMember> findByTeamAndStatus(Team team, TeamStatus status);
     
     @Modifying
     @Transactional
@@ -32,4 +34,5 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, UUID> {
     boolean existsByUserIdAndTeamIdAndRole(UUID userId, UUID teamId, String role);
     UUID findTeamMemberIdByUserIdAndTeamId(UUID userId, UUID teamId);
     Optional<TeamMember> findByTeamIdAndUserId(UUID teamId, UUID userId);
+
 }

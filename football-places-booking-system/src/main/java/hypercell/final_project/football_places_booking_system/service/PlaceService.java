@@ -1,13 +1,23 @@
 package hypercell.final_project.football_places_booking_system.service;
 
-import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import hypercell.final_project.football_places_booking_system.exception.ResourceNotFoundException;
+import hypercell.final_project.football_places_booking_system.exception.AppException;
+import hypercell.final_project.football_places_booking_system.exception.NoContentException;
+import hypercell.final_project.football_places_booking_system.exception.NoDataException;
+import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
+import hypercell.final_project.football_places_booking_system.exception.ValidationException;
 import hypercell.final_project.football_places_booking_system.model.db.Place;
 import hypercell.final_project.football_places_booking_system.model.dto.PlaceDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.ResponseDTO;
+import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
+import hypercell.final_project.football_places_booking_system.model.enums.PlaceType;
 import hypercell.final_project.football_places_booking_system.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -17,41 +27,131 @@ public class PlaceService {
 
     private final PlaceRepository placeRepository;
 
+    public PlaceDTO createPlace(PlaceDTO placeDto) throws AppException{
+        if (placeDto.name() == null && placeDto.location() == null && placeDto.imageUrl() == null && placeDto.placeType() == null) {
+            throw new NoDataException(ErrorCode.NO_DATA);
+        }
 
-    public Place createPlace(PlaceDTO placeDto) {
+        if (placeDto.name() == null || placeDto.name().isEmpty()) {
+            throw new ValidationException(ErrorCode.INVALID_PLACE_NAME);
+        }
+
+        if (placeDto.location() == null || placeDto.location().isEmpty()) {
+            throw new ValidationException(ErrorCode.INVALID_PLACE_LOCATION);
+        }
+
+        if (placeDto.imageUrl() == null || placeDto.imageUrl().isEmpty()) {
+            throw new ValidationException(ErrorCode.INVALID_PLACE_IMAGE_URL);
+        }
+
+        if (placeDto.placeType() == null) {
+            throw new ValidationException(ErrorCode.INVALID_PLACE_TYPE);
+        }
+
         Place place = new Place();
-        place.setName(placeDto.getName());
-        place.setLocation(placeDto.getLocation());
-        place.setImageUrl(placeDto.getImageUrl());
-        place.setPlaceType(placeDto.getPlaceType());
-        return placeRepository.save(place);
+        place.setName(placeDto.name());
+        place.setLocation(placeDto.location());
+        place.setImageUrl(placeDto.imageUrl());
+        place.setPlaceType(placeDto.placeType());
+
+        Place newPlace = placeRepository.save(place);
+
+        return new PlaceDTO(
+                newPlace.getId(),
+                newPlace.getName(),
+                newPlace.getLocation(),
+                newPlace.getPlaceType(),
+                newPlace.getImageUrl()
+            );
     }
 
 
-    public Place getPlaceById(UUID id) {
-        return placeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Place not found with id: " + id));
+    public PlaceDTO getPlaceById(UUID id) throws AppException {
+        Place place = placeRepository.findById(id).orElseThrow(() -> new NotFoundException(ErrorCode.PLACE_NOT_FOUND));
+
+        return new PlaceDTO(
+            place.getId(),
+            place.getName(),
+            place.getLocation(),
+            place.getPlaceType(),
+            place.getImageUrl()
+        );
+    }
+
+    public Page<PlaceDTO> filterPlaces(String name, String location, PlaceType placeType, String imageUrl, Pageable pageable) throws AppException {
+        Specification<Place> spec = (root, query, cb) -> cb.conjunction();
+
+        if (name != null && !name.isEmpty()) {
+            spec = spec.and((root, query, cb) -> 
+                cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
+        }
+
+        if (location != null && !location.isEmpty()) {
+            spec = spec.and((root, query, cb) -> 
+                cb.like(cb.lower(root.get("location")), "%" + location.toLowerCase() + "%"));
+        }
+
+        if (placeType != null) {
+            spec = spec.and((root, query, cb) -> 
+                cb.equal(root.get("placeType"), placeType));
+        }
+
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            spec = spec.and((root, query, cb) -> 
+                cb.like(cb.lower(root.get("imageUrl")), "%" + imageUrl.toLowerCase() + "%"));
+        }
+
+        Page<Place> places = placeRepository.findAll(spec, pageable);
+
+        if (places.isEmpty()) {
+            throw new NoContentException(ErrorCode.NO_CONTENT);
+        }
+
+        return places.map(place -> new PlaceDTO(
+            place.getId(),
+            place.getName(),
+            place.getLocation(),
+            place.getPlaceType(),
+            place.getImageUrl()
+        ));
+    }
+
+    public ResponseEntity<ResponseDTO> updatePlace(UUID id, PlaceDTO updatedPlace) throws AppException {
+        Place place = placeRepository.findById(id).orElseThrow(() -> new NotFoundException(ErrorCode.PLACE_NOT_FOUND));
+
+        if (updatedPlace.name() == null && updatedPlace.location() == null && updatedPlace.imageUrl() == null && updatedPlace.placeType() == null) {
+            throw new NoDataException(ErrorCode.NO_DATA);
+        }
+
+        if (updatedPlace.name() != null && !updatedPlace.name().isEmpty()) {
+            place.setName(updatedPlace.name());
+        }
+
+        if (updatedPlace.location() != null && !updatedPlace.location().isEmpty()) {
+            place.setLocation(updatedPlace.location());
+        }
+
+        if (updatedPlace.imageUrl() != null && !updatedPlace.imageUrl().isEmpty()) {
+            place.setImageUrl(updatedPlace.imageUrl());
+        }
+
+        if (updatedPlace.placeType() != null) {
+            place.setPlaceType(updatedPlace.placeType());
+        }
+
+        placeRepository.save(place);
+
+        return ResponseEntity.ok(new ResponseDTO(id, "Place updated successfully"));
     }
 
 
-    public List<Place> getAllPlaces() {
-        return placeRepository.findAll();
-    }
+    public ResponseEntity<ResponseDTO> deletePlace(UUID id) throws AppException {
+        if (!placeRepository.existsById(id)) {
+            throw new NotFoundException(ErrorCode.PLACE_NOT_FOUND);
+        }
 
-
-    public Place updatePlace(UUID id, Place updatedPlace) {
-        Place existingPlace = placeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Place not found with id: " + id));
-        existingPlace.setName(updatedPlace.getName());
-        existingPlace.setLocation(updatedPlace.getLocation());
-        existingPlace.setPlaceType(updatedPlace.getPlaceType());
-        existingPlace.setImageUrl(updatedPlace.getImageUrl());
-
-        return placeRepository.save(existingPlace);
-    }
-
-
-    public void deletePlace(UUID id) {
         placeRepository.deleteById(id);
+
+        return ResponseEntity.ok(new ResponseDTO(id, "Place deleted successfully"));
     }
 }
