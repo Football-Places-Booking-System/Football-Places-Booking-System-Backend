@@ -73,6 +73,10 @@ public class MatchParticipantService {
             throw new ValidationException(ErrorCode.INVALID_PARTICIPANT_STATUS);
         }
 
+        if(status != ParticipantStatus.INVITED) {
+            throw new AlreadyExistsException(ErrorCode.MATCH_PARTICIPANT_ALREADY_RESPONDED);
+        }
+
         MatchParticipant participant = matchParticipantRepository.findById(participantId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MATCH_PARTICIPANT_NOT_FOUND));
 
