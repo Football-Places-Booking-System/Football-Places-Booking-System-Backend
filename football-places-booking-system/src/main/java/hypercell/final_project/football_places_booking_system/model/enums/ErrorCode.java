@@ -33,10 +33,11 @@ public enum ErrorCode {
     // ===== Place Errors =====
     INVALID_PLACE_ID(500, "Place ID is either empty or null"),
     INVALID_PLACE_NAME(501, "Place name is either empty or null"),
-    INVALID_PLACE_IMAGE_URL(502, "Place image URL is either empty or null"),
-    INVALID_PLACE_LOCATION(503, "Place location is either empty or null"),
-    INVALID_PLACE_TYPE(504, "Place type is invalid"),
-    PLACE_NOT_FOUND(505, "Place not found"),
+    INVALID_PLACE_DESCRIPTION(502, "Place description is either empty or null"),
+    INVALID_PLACE_IMAGE_URL(503, "Place image URL is either empty or null"),
+    INVALID_PLACE_LOCATION(504, "Place location is either empty or null"),
+    INVALID_PLACE_TYPE(505, "Place type is invalid"),
+    PLACE_NOT_FOUND(506, "Place not found"),
 
     // ===== Booking Match Errors =====
     INVALID_BOOKING_MATCH_ID(600, "Booking match ID is either empty or null"),

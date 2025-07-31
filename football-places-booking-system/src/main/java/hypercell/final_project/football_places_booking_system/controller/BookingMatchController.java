@@ -47,7 +47,7 @@ public class BookingMatchController {
      * Cancel a booking match.
      * Only ORGANIZERs in the team can cancel bookings.
      */
-    @PutMapping("/{id}/cancel")
+    @PatchMapping("/cancel/{id}")
     public ResponseEntity<String> cancel(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails
