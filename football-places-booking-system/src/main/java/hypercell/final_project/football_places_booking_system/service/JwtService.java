@@ -2,11 +2,11 @@ package hypercell.final_project.football_places_booking_system.service;
 
 import java.util.Date;
 
-import hypercell.final_project.football_places_booking_system.model.db.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import hypercell.final_project.football_places_booking_system.model.db.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

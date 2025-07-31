@@ -14,5 +14,4 @@ public record TeamResponse(
         UUID createdBy,
         LocalDateTime createdAt,
         List<TeamMemberResponse> members
-        //dto for returning teamMember
 ) { }

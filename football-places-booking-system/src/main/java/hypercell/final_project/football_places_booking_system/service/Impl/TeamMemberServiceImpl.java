@@ -143,7 +143,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // 3. Check if the inviter is the team creator or an organizer
         if (!team.getCreator().getId().equals(invitedById) && 
             !teamMemberRepository.existsByUserIdAndTeamIdAndRole(
-                invitedById, teamId, TeamRole.ORGANIZER.name())) {
+                invitedById, teamId, TeamRole.ORGANIZER)) {
             log.warn("User {} is not authorized to invite members to team {}", invitedById, teamId);
             throw new ValidationException(ErrorCode.FORBIDDEN);
         }

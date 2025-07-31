@@ -2,13 +2,16 @@ package hypercell.final_project.football_places_booking_system.security;
 
 import java.io.IOException;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.service.CustomUserDetailsService;
 import hypercell.final_project.football_places_booking_system.service.JwtService;
 import jakarta.servlet.FilterChain;
@@ -42,7 +45,18 @@ public class JwtFilter extends OncePerRequestFilter {
         email = jwtService.extractUsername(jwt);
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            UserDetails userDetails = null;
+            
+            try {
+                userDetails = userDetailsService.loadUserByUsername(email);
+            } catch (UsernameNotFoundException e) {
+                response.setStatus(HttpStatus.NOT_FOUND.value());
+                response.setContentType("application/json");
+                ErrorCode error = ErrorCode.USER_NOT_FOUND;
+                String body = String.format("{\"code\":%d,\"msg\":\"%s\"}", error.getCode(), error.getMsg());
+                response.getWriter().write(body);
+                return;
+            }
 
             if (jwtService.isTokenValid(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

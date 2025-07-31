@@ -8,9 +8,6 @@ import hypercell.final_project.football_places_booking_system.model.enums.TeamSt
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
 @Getter
 @NoArgsConstructor
@@ -30,12 +27,12 @@ public class TeamMember extends BaseEntity {
     private TeamStatus status;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = true)
+    @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference  // This prevents infinite recursion
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "team_id", nullable = true)
+    @JoinColumn(name = "team_id", nullable = false)
     @JsonBackReference  // This prevents infinite recursion
     private Team team;
 

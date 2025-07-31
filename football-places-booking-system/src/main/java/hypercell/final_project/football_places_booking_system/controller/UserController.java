@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
     private final UserService userService;
 
-    @GetMapping("/get/{id}")
+    @GetMapping("/{id}")
     public UserDTO getUserById(@PathVariable UUID id) throws AppException {
         return userService.getUserById(id);
     }
@@ -43,12 +43,12 @@ public class UserController {
             @RequestParam(required = false) String username,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
-    ) {
+    ) throws AppException {
         Pageable pageable = PageRequest.of(page, size);
         return userService.filterUsers(email, role, status, username, pageable);
     }
 
-    @PatchMapping("/update/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<ResponseDTO> updateUser(@PathVariable UUID id, @RequestBody UserDTO userDTO) throws AppException {
         return userService.updateUser(id, userDTO);
     }
