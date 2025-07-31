@@ -29,6 +29,9 @@ public class Place extends BaseEntity {
     private UUID id;
 
     private String name;
+    
+    private String description;
+
     private String location;
 
     @Enumerated(EnumType.STRING)
