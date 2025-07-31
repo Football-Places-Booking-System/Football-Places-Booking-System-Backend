@@ -15,9 +15,14 @@ import io.jsonwebtoken.SignatureAlgorithm;
 public class JwtService {
 
     private static String SECRET_KEY; 
+    private static long EXPIRATION;
 
-    public JwtService(@Value("${app.security.jwt.secret-key}") String secretKey) {
+    public JwtService(
+            @Value("${app.security.jwt.secret-key}") String secretKey,
+            @Value("${app.security.jwt.expiration}") long expiration
+    ) {
         SECRET_KEY = secretKey;
+        EXPIRATION = expiration;
     }
 
     public String extractUsername(String token) {
@@ -33,9 +38,9 @@ public class JwtService {
         return Jwts.builder()
             .setSubject(userDetails.getUsername())
             .claim("authorities", userDetails.getAuthorities())
-                .claim("userId", ((User) userDetails).getId())
+            .claim("userId", ((User) userDetails).getId())
             .setIssuedAt(new Date(System.currentTimeMillis()))
-            .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
+            .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
             .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
             .compact();
     }
