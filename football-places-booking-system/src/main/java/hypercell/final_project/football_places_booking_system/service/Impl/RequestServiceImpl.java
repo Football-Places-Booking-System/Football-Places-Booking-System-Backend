@@ -1,5 +1,11 @@
 package hypercell.final_project.football_places_booking_system.service.Impl;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.model.db.Request;
@@ -12,11 +18,6 @@ import hypercell.final_project.football_places_booking_system.repository.UserRep
 import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +52,31 @@ public class RequestServiceImpl implements RequestService  {
     }
     
     @Override
+    public Request createRequestWithMessage(UUID senderId, UUID receiverId, RequestType requestType, String message) throws AppException {
+        log.info("Creating request with message from sender {} to receiver {} of type {}", senderId, receiverId, requestType);
+        
+        User sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+        
+        User receiver = userRepository.findById(receiverId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+        
+        Request request = Request.builder()
+                .sender(sender)
+                .receiver(receiver)
+                .requestType(requestType)
+                .status(ResponseStatus.PENDING)
+                .sendTime(LocalDateTime.now())
+                .requestMessage(message)
+                .build();
+        
+        Request savedRequest = requestRepository.save(request);
+        log.info("Successfully created request with ID: {} and message: {}", savedRequest.getId(), message);
+        
+        return savedRequest;
+    }
+    
+    @Override
     public Request updateRequestStatus(UUID requestId, ResponseStatus status) throws AppException {
         log.info("Updating request {} status to {}", requestId, status);
         
@@ -62,6 +88,25 @@ public class RequestServiceImpl implements RequestService  {
         
         Request updatedRequest = requestRepository.save(request);
         log.info("Successfully updated request {} status to {}", requestId, status);
+        
+        return updatedRequest;
+    }
+    
+    @Override
+    public Request updateRequestStatusWithMessage(UUID requestId, ResponseStatus status, String responseMessage) throws AppException {
+        log.info("Updating request {} status to {} with message: {}", requestId, status, responseMessage);
+        
+        Request request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.REQUEST_NOT_FOUND));
+        
+        request.setStatus(status);
+        request.setResponseTime(LocalDateTime.now());
+        
+        // Set response message
+        request.setResponseMessage(responseMessage);
+        
+        Request updatedRequest = requestRepository.save(request);
+        log.info("Successfully updated request {} status to {} with response message", requestId, status);
         
         return updatedRequest;
     }

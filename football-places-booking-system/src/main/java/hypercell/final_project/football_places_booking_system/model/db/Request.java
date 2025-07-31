@@ -42,6 +42,12 @@ public class Request {
     @Enumerated(EnumType.STRING)
     private ResponseStatus status;
 
+    @Column(nullable = true, name = "requestMessage")
+    private String requestMessage;
+
+    @Column(nullable = true, name = "responseMessage")
+    private String responseMessage;
+
     @ManyToOne
     @JoinColumn(name = "sender_id")
     private User sender;
