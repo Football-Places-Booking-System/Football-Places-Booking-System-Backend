@@ -34,15 +34,21 @@ public class JwtFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
-        final String email;
+        String email = null;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            request.setAttribute("auth_error", "MISSING_TOKEN");
             filterChain.doFilter(request, response);
             return;
         }
 
         jwt = authHeader.substring(7);
-        email = jwtService.extractUsername(jwt);
+
+        try {
+            email = jwtService.extractUsername(jwt);
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            request.setAttribute("auth_error", "INVALID_TOKEN"); 
+        }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = null;
@@ -67,6 +73,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                request.setAttribute("auth_error", "INVALID_TOKEN");
             }
         }
 
