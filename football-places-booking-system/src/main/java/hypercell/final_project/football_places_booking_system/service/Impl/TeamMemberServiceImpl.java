@@ -10,6 +10,7 @@ import hypercell.final_project.football_places_booking_system.exception.AlreadyE
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
+import hypercell.final_project.football_places_booking_system.model.db.Request;
 import hypercell.final_project.football_places_booking_system.model.db.Team;
 import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.db.User;
@@ -42,7 +43,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     private final TeamServiceImpl teamService;
     private final EmailServiceImpl emailService;
     private final RequestService requestService;
-    private final RequestRepository requestRepository; // Add this
+    private final RequestRepository requestRepository;
 
 
     @Override
@@ -162,8 +163,17 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // 6. Create team member and save the result
         TeamMemberResponse teamMemberResponse = createTeamMember(req, invitedById);
         
-        // 7. Create Request entity for the invitation
-        requestService.createRequest(invitedById, user.getId(), RequestType.JOIN_TEAM_INVITATION);
+        // 7. Get inviter user information for the message
+        User inviterUser = userRepository.findById(invitedById)
+                .orElseThrow(() -> {
+                    log.warn("Inviter user not found with ID: {}", invitedById);
+                    return new NotFoundException(ErrorCode.USER_NOT_FOUND);
+                });
+        
+        // 8. Create Request entity for the invitation with meaningful message
+        String invitationMessage = String.format("%s has invited you to join Team %s", 
+                inviterUser.getUserName(), team.getName());
+        requestService.createRequestWithMessage(invitedById, user.getId(), RequestType.JOIN_TEAM_INVITATION, invitationMessage);
         
         // 8. Send the invitation email
         log.info("Sending Team invitation email to: {}", email);
@@ -210,20 +220,32 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // Save the team member
         teamMember = teamMemberRepository.save(teamMember);
         
-        // Update the Request entity status
+        // Update the Request entity status with meaningful response message
         ResponseStatus responseStatus = request == TeamStatus.APPROVED ? ResponseStatus.ACCEPTED : ResponseStatus.REJECTED;
         
         // Find the request by sender (inviter) and receiver (team member) and type
         UUID inviterId = teamMember.getInvitedBy().getId();
         UUID receiverId = teamMember.getUser().getId();
         
-        // You might need to add a method to find and update the request
+        // Create meaningful response message
+        String responseMessage = String.format("Your invitation to join Team %s has been %s by %s",
+                teamMember.getTeam().getName(),
+                (request == TeamStatus.APPROVED) ? "accepted" : "rejected",
+                teamMember.getUser().getUserName());
+        
+        // Find and update the request with response message
         requestRepository.findBySenderIdAndReceiverIdAndRequestType(inviterId, receiverId, RequestType.JOIN_TEAM_INVITATION)
                 .ifPresent(existingRequest -> {
                     try {
-                        requestService.updateRequestStatus(existingRequest.getId(), responseStatus);
+                        requestService.updateRequestStatusWithMessage(existingRequest.getId(), responseStatus, responseMessage);
                     } catch (AppException e) {
-                        throw new RuntimeException(e);
+                        log.warn("Failed to update request entity with response message: {}", e.getMessage());
+                        // Fallback to status-only update
+                        try {
+                            requestService.updateRequestStatus(existingRequest.getId(), responseStatus);
+                        } catch (AppException fallbackException) {
+                            throw new RuntimeException(fallbackException);
+                        }
                     }
                 });
         
@@ -265,6 +287,12 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 .build();
 
         teamMember = teamMemberRepository.save(teamMember);
+        
+        // Create Request entity for the join request with meaningful message
+        String requestMessage = String.format("%s is asking to join %s", 
+                user.getUserName(), team.getName());
+        requestService.createRequestWithMessage(userId, team.getCreator().getId(), RequestType.JOIN_TEAM_REQUEST, requestMessage);
+        
         return mapToTeamMemberResponse(teamMember);
     }
 
@@ -299,6 +327,34 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // Accept/Reject
         if (response == TeamStatus.APPROVED || response == TeamStatus.REJECTED) {
             teamMember.setStatus(response);
+            
+            // Update request entity with response message
+            try {
+                User responderUser = userRepository.findById(organizerId)
+                        .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+                
+                ResponseStatus requestStatus = (response == TeamStatus.APPROVED) ? 
+                        ResponseStatus.ACCEPTED : ResponseStatus.REJECTED;
+                String responseMessage = String.format("Your request to join Team %s has been %s by %s",
+                        team.getName(), 
+                        (response == TeamStatus.APPROVED) ? "accepted" : "rejected",
+                        responderUser.getUserName());
+                
+                // Find the request by searching for requests from team member to organizer for team join request
+                List<Request> senderRequests = requestService.getRequestsBySender(teamMember.getUser().getId());
+                UUID organizerUserId = organizerId;
+                
+                for (Request request : senderRequests) {
+                    if (request.getReceiver().getId().equals(organizerUserId) && 
+                        request.getRequestType() == RequestType.JOIN_TEAM_REQUEST &&
+                        request.getStatus() == ResponseStatus.PENDING) {
+                        requestService.updateRequestStatusWithMessage(request.getId(), requestStatus, responseMessage);
+                        break;
+                    }
+                }
+            } catch (AppException e) {
+                log.warn("Failed to update request entity for team join request response: {}", e.getMessage());
+            }
         } else {
             throw new ValidationException(ErrorCode.INVALID_TEAM_STATUS);
         }

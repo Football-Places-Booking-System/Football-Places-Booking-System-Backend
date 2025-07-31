@@ -1,5 +1,6 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -119,13 +120,26 @@ public class TeamMemberController {
             // For email clicks - redirect to Angular frontend
             String redirectUrl = "http://localhost:4200/invitation-response?status=" + request.name().toLowerCase();
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header("Location", redirectUrl)
+                    .location(URI.create(redirectUrl))
                     .build();
 
         } else {
             // For frontend API calls - return JSON response
             return ResponseEntity.ok(response);
         }
+    }
+
+    // Endpoint to accept or reject an invitation
+    @GetMapping("/invitation-mail/{teamMemberId}")
+    public ResponseEntity<Void> respondToInvitationMail(
+            @PathVariable UUID teamMemberId,
+            @RequestParam("status") TeamStatus request) throws AppException {
+
+
+        teamMemberService.respondToInvitation(teamMemberId, request);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create("http://localhost:4200/"))
+                .build();
     }
 
 
@@ -142,7 +156,7 @@ public class TeamMemberController {
     public ResponseEntity<List<TeamMemberResponse>> listPendingRequests(
             @PathVariable UUID teamId,
             @AuthenticationPrincipal UserDetails principal) throws AppException {
-        User organiser = (User) principal;                     // make sure caller is organiser
+        User organiser = (User) principal;                     // make sure caller is organizer
         if (!teamMemberService.isOrganizer(organiser.getId(), teamId))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 

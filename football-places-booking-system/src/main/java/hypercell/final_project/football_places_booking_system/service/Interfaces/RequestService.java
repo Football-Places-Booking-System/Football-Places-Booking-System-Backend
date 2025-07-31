@@ -12,7 +12,11 @@ public interface RequestService {
     
     Request createRequest(UUID senderId, UUID receiverId, RequestType requestType) throws AppException;
     
+    Request createRequestWithMessage(UUID senderId, UUID receiverId, RequestType requestType, String message) throws AppException;
+    
     Request updateRequestStatus(UUID requestId, ResponseStatus status) throws AppException;
+    
+    Request updateRequestStatusWithMessage(UUID requestId, ResponseStatus status, String responseMessage) throws AppException;
     
     Request getRequestById(UUID requestId) throws AppException;
     

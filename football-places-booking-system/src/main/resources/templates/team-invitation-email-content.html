@@ -89,9 +89,13 @@
 <!--        </div>-->
 
 
+<!--        <div style="text-align: center; margin: 30px 0;">-->
+<!--            <a th:href="${invitationApi} + '?status=APPROVED&redirect=true'" class="button accept-button" style="margin-right: 10px; text-decoration: none;">✓ Accept Invitation</a>-->
+<!--            <a th:href="${invitationApi} + '?status=REJECTED&redirect=true'" class="button reject-button" style="text-decoration: none;">✗ Reject Invitation</a>-->
+<!--        </div>-->
         <div style="text-align: center; margin: 30px 0;">
-            <a th:href="${invitationApi} + '?status=APPROVED&redirect=true'" class="button accept-button" style="margin-right: 10px; text-decoration: none;">✓ Accept Invitation</a>
-            <a th:href="${invitationApi} + '?status=REJECTED&redirect=true'" class="button reject-button" style="text-decoration: none;">✗ Reject Invitation</a>
+            <a th:href="${invitationApi} + '?status=APPROVED'" class="button accept-button" style="margin-right: 10px; text-decoration: none;">✓ Accept Invitation</a>
+            <a th:href="${invitationApi} + '?status=REJECTED'" class="button reject-button" style="text-decoration: none;">✗ Reject Invitation</a>
         </div>
         
         <p style="font-size: 14px; color: #666;">If you didn't expect this invitation, you can safely ignore this email.</p>
