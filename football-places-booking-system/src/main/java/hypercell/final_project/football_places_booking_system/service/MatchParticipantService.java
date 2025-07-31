@@ -1,62 +1,56 @@
 package hypercell.final_project.football_places_booking_system.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.exception.*;
+import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
+import hypercell.final_project.football_places_booking_system.repository.MatchParticipantRepository;
+import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
 import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
 import hypercell.final_project.football_places_booking_system.model.db.User;
-import hypercell.final_project.football_places_booking_system.model.dto.MatchParticipantDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class MatchParticipantService {
 
-    // In-memory lists for demo/testing.
-    private final List<MatchParticipant> dummyParticipants = new ArrayList<>();
-    private final List<User> dummyUsers = new ArrayList<>();
+    private final MatchParticipantRepository matchParticipantRepository;
+    private final UserRepository userRepository;
+    private final BookingMatchService bookingMatchService;
 
-    public void seedUsers(List<User> users) {
-        this.dummyUsers.clear();
-        this.dummyUsers.addAll(users);
-    }
+    // Invite a user to a match
+    public MatchParticipant inviteParticipant(MatchPartDTO dto) throws AppException {
+        // Validate email
+        if (dto.email() == null || dto.email().trim().isEmpty()) {
+            throw new ValidationException(ErrorCode.INVALID_PARTICIPANT_EMAIL);
+        }
 
-    // Repositories for future production use.
-    // Private final MatchParticipantRepository matchParticipantRepository;
-    // private final UserRepository userRepository;
+        // Validate booking match ID
+        if (dto.bookingMatchId() == null) {
+            throw new ValidationException(ErrorCode.INVALID_BOOKING_MATCH_ID);
+        }
 
-    // Invites a user to a match and adds them as a participant.
-    public MatchParticipant inviteParticipant(MatchParticipantDTO dto) {
-        // Dummy version
-        User user = dummyUsers.stream()
-                .filter(u -> u.getEmail().equals(dto.email()))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("User with email not found"));
+        User user = userRepository.findByEmailIgnoreCase(dto.email())
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
-        MatchParticipant participant = MatchParticipant.builder()
-                .id(UUID.randomUUID()) // simulate ID
-                .bookingMatch(BookingMatch.builder().id(dto.bookingMatchId()).build())
-                .user(user)
-                .status(ParticipantStatus.INVITED)
-                .build();
+        // Use service instead of direct repository (this will validate booking match exists)
+        BookingMatch match = bookingMatchService.getById(dto.bookingMatchId());
 
-        dummyParticipants.add(participant);
-        return participant;
+        // Check if user is already a participant in this match
+        boolean alreadyParticipant = matchParticipantRepository
+                .findByBookingMatchIdAndUserId(match.getId(), user.getId())
+                .isPresent();
 
-        // Real version (uncomment when ready)
-        /*
-        User user = userRepository.findByEmail(dto.email())
-                .orElseThrow(() -> new EntityNotFoundException("User with email not found"));
-
-        BookingMatch match = bookingMatchRepository.findById(dto.bookingMatchId())
-                .orElseThrow(() -> new EntityNotFoundException("Booking match not found"));
+        if (alreadyParticipant) {
+            throw new ValidationException(ErrorCode.MATCH_PARTICIPANT_ALREADY_EXISTS);
+        }
 
         MatchParticipant participant = MatchParticipant.builder()
                 .bookingMatch(match)
@@ -65,41 +59,43 @@ public class MatchParticipantService {
                 .build();
 
         return matchParticipantRepository.save(participant);
-        */
     }
 
-    // Updates the participant's status and response time.
-    public MatchParticipant respondToInvitation(UUID participantId, ParticipantStatus status) {
-        // Dummy version
-        MatchParticipant p = dummyParticipants.stream()
-                .filter(mp -> mp.getId().equals(participantId))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("Participant not found"));
+    // Respond to invitation
+    public MatchParticipant respondToInvitation(UUID participantId, ParticipantStatus status) throws AppException {
+        // Validate participant ID
+        if (participantId == null) {
+            throw new ValidationException(ErrorCode.INVALID_PARTICIPANT_ID);
+        }
 
-        p.setStatus(status);
-        p.setRespondedAt(LocalDateTime.now());
-        return p;
+        // Validate status
+        if (status == null) {
+            throw new ValidationException(ErrorCode.INVALID_PARTICIPANT_STATUS);
+        }
 
-        // Real version (uncomment when ready)
-        /*
-        MatchParticipant p = matchParticipantRepository.findById(participantId)
-                .orElseThrow(() -> new EntityNotFoundException("Participant not found"));
+        if(status != ParticipantStatus.INVITED) {
+            throw new AlreadyExistsException(ErrorCode.MATCH_PARTICIPANT_ALREADY_RESPONDED);
+        }
 
-        p.setStatus(status);
-        p.setRespondedAt(LocalDateTime.now());
+        MatchParticipant participant = matchParticipantRepository.findById(participantId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MATCH_PARTICIPANT_NOT_FOUND));
 
-        return matchParticipantRepository.save(p);
-        */
+        participant.setStatus(status);
+        participant.setRespondedAt(LocalDateTime.now());
+
+        return matchParticipantRepository.save(participant);
     }
 
-    // Returns all participants for a given match.
-    public List<MatchParticipant> getByMatch(UUID matchId) {
-        // Dummy version
-        return dummyParticipants.stream()
-                .filter(p -> p.getBookingMatch().getId().equals(matchId))
-                .toList();
+    // Get all participants for a match
+    public List<MatchParticipant> getByMatch(UUID matchId) throws AppException {
+        // Validate match ID
+        if (matchId == null) {
+            throw new ValidationException(ErrorCode.INVALID_BOOKING_MATCH_ID);
+        }
 
-        // Real version (uncomment when ready)
-        // return matchParticipantRepository.findByBookingMatchId(matchId);
+        // Validate existence using service (this will throw proper exception if not found)
+        bookingMatchService.getById(matchId);
+        
+        return matchParticipantRepository.findByBookingMatchId(matchId);
     }
 }
