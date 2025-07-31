@@ -69,7 +69,8 @@ public enum ErrorCode {
     UNAUTHORIZED(903, "Unauthorized access"),
     FORBIDDEN(904, "Action is forbidden"),
     INTERNAL_ERROR(905, "Internal server error"),
-    INVALID_CREDENTIALS(906, "Invalid credentials provided");
+    INVALID_CREDENTIALS(906, "Invalid credentials provided"),
+    INVALID_TOKEN(907, "Token is invalid or expired");
 
     // ===== Email Errors =====
     // EMAIL_SEND_FAILURE(1000, "Failed to send email");

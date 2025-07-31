@@ -23,10 +23,19 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                             
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
-        response.getWriter().write(
-            String.format("{\"code\":%d,\"msg\":\"%s\"}",
-                ErrorCode.UNAUTHORIZED.getCode(),
-                ErrorCode.UNAUTHORIZED.getMsg())
-        );
+
+        String error = (String) request.getAttribute("auth_error");
+        int code = -1;
+        String msg = "This is a new error.. debug";
+
+        if ("MISSING_TOKEN".equals(error)) {
+            code = ErrorCode.UNAUTHORIZED.getCode();
+            msg = ErrorCode.UNAUTHORIZED.getMsg();
+        } else if ("INVALID_TOKEN".equals(error)) {
+            code = ErrorCode.INVALID_TOKEN.getCode();
+            msg = ErrorCode.INVALID_TOKEN.getMsg();
+        }
+
+        response.getWriter().write("{\"code\":" + code + ",\"msg\":\"" + msg + "\"}");
     }
 }
