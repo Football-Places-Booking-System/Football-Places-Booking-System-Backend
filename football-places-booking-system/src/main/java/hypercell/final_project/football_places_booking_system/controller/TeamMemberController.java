@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -70,31 +71,25 @@ public class TeamMemberController {
         List<TeamMemberResponse> responses = teamMemberService.getTeamMembersByUserId(userId);
         return ResponseEntity.ok(responses);
     }
+
     @PutMapping
     public ResponseEntity<TeamMemberResponse> updateTeamMember(
             @Valid @RequestBody TeamMemberUpdateRequest request) {
         TeamMemberResponse response = teamMemberService.updateTeamMember(request);
         return ResponseEntity.ok(response);
     }
-    
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<Void> deleteTeamMember(
-//            @PathVariable UUID id) {
-//        teamMemberService.deleteTeamMember(id);
-//        return ResponseEntity.noContent().build();
-//    }
+
+    @PreAuthorize("@authService.hasTeamRole(#teamId, 'ORGANIZER')")
     @PostMapping("/invite/{teamId}")
     public ResponseEntity<TeamMemberResponse> inviteByEmail(
             @PathVariable UUID teamId,
             @Valid @RequestBody TeamInvitationRequest request,
             @AuthenticationPrincipal UserDetails userDetails) throws AppException {
         User inviter = (User) userDetails;
-        if (!teamMemberService.isOrganizer(inviter.getId(), teamId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
         TeamMemberResponse response = teamMemberService.inviteByEmail(request.email(), teamId, inviter.getId());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTeamMember(
             @PathVariable UUID id,
@@ -129,18 +124,18 @@ public class TeamMemberController {
         }
     }
 
-    // Endpoint to accept or reject an invitation
-    @GetMapping("/invitation-mail/{teamMemberId}")
-    public ResponseEntity<Void> respondToInvitationMail(
-            @PathVariable UUID teamMemberId,
-            @RequestParam("status") TeamStatus request) throws AppException {
+    // // Endpoint to accept or reject an invitation
+    // @GetMapping("/invitation-mail/{teamMemberId}")
+    // public ResponseEntity<Void> respondToInvitationMail(
+    //         @PathVariable UUID teamMemberId,
+    //         @RequestParam("status") TeamStatus request) throws AppException {
 
 
-        teamMemberService.respondToInvitation(teamMemberId, request);
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create("http://localhost:4200/"))
-                .build();
-    }
+    //     teamMemberService.respondToInvitation(teamMemberId, request);
+    //     return ResponseEntity.status(HttpStatus.FOUND)
+    //             .location(URI.create("http://localhost:4200/"))
+    //             .build();
+    // }
 
 
     @PostMapping("/join-request/{teamId}")
@@ -152,6 +147,7 @@ public class TeamMemberController {
         TeamMemberResponse response = teamMemberService.requestToJoinTeam(teamId, user.getId());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
     @GetMapping("/join-requests/{teamId}")
     public ResponseEntity<List<TeamMemberResponse>> listPendingRequests(
             @PathVariable UUID teamId,
@@ -162,6 +158,7 @@ public class TeamMemberController {
 
         return ResponseEntity.ok(teamMemberService.getPendingJoinRequests(teamId));
     }
+
     @PostMapping("/join-request/respond")   // ?teamMemberId=..&status=APPROVED|REJECTED
     public ResponseEntity<TeamMemberResponse> handleJoinRequest(
             @RequestParam UUID teamMemberId,
