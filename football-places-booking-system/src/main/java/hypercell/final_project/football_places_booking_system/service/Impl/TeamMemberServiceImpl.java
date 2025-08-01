@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
+import hypercell.final_project.football_places_booking_system.exception.ForbiddenActionException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
 import hypercell.final_project.football_places_booking_system.model.db.Request;
 import hypercell.final_project.football_places_booking_system.model.db.Team;
@@ -123,7 +124,9 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 .map(tm -> tm.getRole() == TeamRole.ORGANIZER)
                 .orElse(false);
     }
-    public TeamMemberResponse inviteByEmail(String email, UUID teamId, UUID invitedById) throws AppException {
+    public TeamMemberResponse inviteByEmail(String email, UUID teamId, User inviterUser) throws AppException {
+        UUID invitedById = inviterUser.getId();
+
         log.info("Inviting user with email: {} to team: {} by user: {}", email, teamId, invitedById);
         log.debug("Inviting user with email: {} to team: {} by user: {}", email, teamId, invitedById);
 
@@ -143,16 +146,15 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 
         // 3. Check if the inviter is the team creator or an organizer
         if (!team.getCreator().getId().equals(invitedById) && 
-            !teamMemberRepository.existsByUserIdAndTeamIdAndRole(
-                invitedById, teamId, TeamRole.ORGANIZER)) {
+            !isOrganizer(invitedById, teamId)) {
             log.warn("User {} is not authorized to invite members to team {}", invitedById, teamId);
-            throw new ValidationException(ErrorCode.FORBIDDEN);
+            throw new ForbiddenActionException(ErrorCode.FORBIDDEN);
         }
 
         // 4. Check if the user is already a member of the team or has been invited (Validation)
         if (teamMemberRepository.findByTeamAndUser(team, user).isPresent()) {
             log.warn("User {} is already a member of team {}", user.getId(), teamId);
-            throw new AlreadyExistsException(ErrorCode.TEAM_MEMBER_ALREADY_INVITED);
+            throw new AlreadyExistsException(ErrorCode.TEAM_MEMBER_ALREADY_PENDING);
         }
         
         // 5. Build the TeamMemberCreationRequest
@@ -163,13 +165,6 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // 6. Create team member and save the result
         TeamMemberResponse teamMemberResponse = createTeamMember(req, invitedById);
         
-        // 7. Get inviter user information for the message
-        User inviterUser = userRepository.findById(invitedById)
-                .orElseThrow(() -> {
-                    log.warn("Inviter user not found with ID: {}", invitedById);
-                    return new NotFoundException(ErrorCode.USER_NOT_FOUND);
-                });
-        
         // 8. Create Request entity for the invitation with meaningful message
         String invitationMessage = String.format("%s has invited you to join Team %s", 
                 inviterUser.getUserName(), team.getName());
@@ -177,27 +172,10 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         
         // 8. Send the invitation email
         log.info("Sending Team invitation email to: {}", email);
-        emailService.sendRequestTOJoinTeam(invitedById, user.getId(), email, teamId);
+        emailService.sendInviteToJoinTeam(inviterUser, user, email, team);
 
         log.info("Successfully invited user {} to team {}", user.getId(), teamId);
         return teamMemberResponse;
-    }
-
-
-    @Override
-    public void deleteTeamMember(UUID teamMemberId, UUID requesterId) throws NotFoundException, ValidationException {
-        TeamMember teamMember = teamMemberRepository.findById(teamMemberId)
-                .orElseThrow(()->
-                new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
-
-        // organizer can remove anyone but member can remove self
-        if (!teamMember.getUser().getId().equals(requesterId)) {
-            // Not deleting self, must be organizer!
-            if (!isOrganizer(requesterId, teamMember.getTeam().getId())) {
-                throw new ValidationException(ErrorCode.FORBIDDEN);
-            }
-        }
-        teamMemberRepository.delete(teamMember);
     }
 
     @Override
@@ -267,12 +245,9 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     }
 
     @Override
-    public TeamMemberResponse requestToJoinTeam(UUID teamId, UUID userId) throws AppException {
+    public TeamMemberResponse requestToJoinTeam(UUID teamId, User user) throws AppException {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
         // Check if already a member
         if (teamMemberRepository.existsByTeamAndUser(team, user)) {
@@ -291,9 +266,82 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // Create Request entity for the join request with meaningful message
         String requestMessage = String.format("%s is asking to join %s", 
                 user.getUserName(), team.getName());
-        requestService.createRequestWithMessage(userId, team.getCreator().getId(), RequestType.JOIN_TEAM_REQUEST, requestMessage);
+        requestService.createRequestWithMessage(user.getId(), team.getCreator().getId(), RequestType.JOIN_TEAM_REQUEST, requestMessage);
+        
+        emailService.sendRequestToJoinTeam(user, team, teamMember.getId());
         
         return mapToTeamMemberResponse(teamMember);
+    }
+
+    @Override
+    public TeamMemberResponse respondToJoinRequest(UUID teamMemberId, TeamStatus response, User organizer) throws AppException {
+        TeamMember teamMember = teamMemberRepository.findById(teamMemberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
+
+        Team team = teamMember.getTeam();
+
+        // Only team creator (organizer) can respond
+        if (!team.getCreator().getId().equals(organizer.getId())) {
+            throw new ForbiddenActionException(ErrorCode.FORBIDDEN);
+        }
+
+        // Ensure request is still pending
+        if (teamMember.getStatus() != TeamStatus.PENDING) {
+            throw new ValidationException(ErrorCode.TEAM_MEMBER_RESPONSE_ALREADY_EXISTS);
+        }
+
+        // Accept/Reject
+        if (response == TeamStatus.APPROVED || response == TeamStatus.REJECTED) {
+            teamMember.setStatus(response);
+            
+            // Update request entity with response message
+            try {
+                ResponseStatus requestStatus = (response == TeamStatus.APPROVED) ? 
+                        ResponseStatus.ACCEPTED : ResponseStatus.REJECTED;
+                String responseMessage = String.format("Your request to join Team %s has been %s by %s",
+                        team.getName(), 
+                        (response == TeamStatus.APPROVED) ? "accepted" : "rejected",
+                        organizer.getUserName());
+                
+                // Find the request by searching for requests from team member to organizer for team join request
+                List<Request> senderRequests = requestService.getRequestsBySender(teamMember.getUser().getId());
+                UUID organizerUserId = organizer.getId();
+                
+                for (Request request : senderRequests) {
+                    if (request.getReceiver().getId().equals(organizerUserId) && 
+                        request.getRequestType() == RequestType.JOIN_TEAM_REQUEST &&
+                        request.getStatus() == ResponseStatus.PENDING) {
+                        requestService.updateRequestStatusWithMessage(request.getId(), requestStatus, responseMessage);
+                        break;
+                    }
+                }
+
+                emailService.sendResponseToJoinRequest(teamMember, response);
+            } catch (AppException e) {
+                log.warn("Failed to update request entity for team join request response: {}", e.getMessage());
+            }
+        } else {
+            throw new ValidationException(ErrorCode.INVALID_TEAM_STATUS);
+        }
+
+        teamMemberRepository.save(teamMember);
+        return mapToTeamMemberResponse(teamMember);
+    }
+
+    @Override
+    public void deleteTeamMember(UUID teamMemberId, UUID requesterId) throws NotFoundException, ValidationException {
+        TeamMember teamMember = teamMemberRepository.findById(teamMemberId)
+                .orElseThrow(()->
+                new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
+
+        // organizer can remove anyone but member can remove self
+        if (!teamMember.getUser().getId().equals(requesterId)) {
+            // Not deleting self, must be organizer!
+            if (!isOrganizer(requesterId, teamMember.getTeam().getId())) {
+                throw new ValidationException(ErrorCode.FORBIDDEN);
+            }
+        }
+        teamMemberRepository.delete(teamMember);
     }
 
     @Override
@@ -305,61 +353,5 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         return pendingMembers.stream()
                 .map(this::mapToTeamMemberResponse)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public TeamMemberResponse respondToJoinRequest(UUID teamMemberId, TeamStatus response, UUID organizerId) throws AppException {
-        TeamMember teamMember = teamMemberRepository.findById(teamMemberId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
-
-        Team team = teamMember.getTeam();
-
-        // Only team creator (organizer) can respond
-        if (!team.getCreator().getId().equals(organizerId)) {
-            throw new ValidationException(ErrorCode.FORBIDDEN);
-        }
-
-        // Ensure request is still pending
-        if (teamMember.getStatus() != TeamStatus.PENDING) {
-            throw new ValidationException(ErrorCode.INVALID_TEAM_STATUS);
-        }
-
-        // Accept/Reject
-        if (response == TeamStatus.APPROVED || response == TeamStatus.REJECTED) {
-            teamMember.setStatus(response);
-            
-            // Update request entity with response message
-            try {
-                User responderUser = userRepository.findById(organizerId)
-                        .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
-                
-                ResponseStatus requestStatus = (response == TeamStatus.APPROVED) ? 
-                        ResponseStatus.ACCEPTED : ResponseStatus.REJECTED;
-                String responseMessage = String.format("Your request to join Team %s has been %s by %s",
-                        team.getName(), 
-                        (response == TeamStatus.APPROVED) ? "accepted" : "rejected",
-                        responderUser.getUserName());
-                
-                // Find the request by searching for requests from team member to organizer for team join request
-                List<Request> senderRequests = requestService.getRequestsBySender(teamMember.getUser().getId());
-                UUID organizerUserId = organizerId;
-                
-                for (Request request : senderRequests) {
-                    if (request.getReceiver().getId().equals(organizerUserId) && 
-                        request.getRequestType() == RequestType.JOIN_TEAM_REQUEST &&
-                        request.getStatus() == ResponseStatus.PENDING) {
-                        requestService.updateRequestStatusWithMessage(request.getId(), requestStatus, responseMessage);
-                        break;
-                    }
-                }
-            } catch (AppException e) {
-                log.warn("Failed to update request entity for team join request response: {}", e.getMessage());
-            }
-        } else {
-            throw new ValidationException(ErrorCode.INVALID_TEAM_STATUS);
-        }
-
-        teamMemberRepository.save(teamMember);
-        return mapToTeamMemberResponse(teamMember);
     }
 }

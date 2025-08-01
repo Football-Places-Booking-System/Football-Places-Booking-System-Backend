@@ -27,7 +27,7 @@ public enum ErrorCode {
     TEAM_MEMBER_ALREADY_EXISTS(402, "User is already a team member"),
     TEAM_MEMBER_NOT_FOUND(403, "Team member not found"),
     INVALID_TEAM_STATUS(404, "Team status is invalid"),
-    TEAM_MEMBER_ALREADY_INVITED(405, "User is already invited to the team"),
+    TEAM_MEMBER_ALREADY_PENDING(405, "User is already pending to join this team"),
     TEAM_MEMBER_RESPONSE_ALREADY_EXISTS(406, "Team member response already exists"),
 
     // ===== Place Errors =====

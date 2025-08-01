@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import hypercell.final_project.football_places_booking_system.exception.AppException;
-import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
-import hypercell.final_project.football_places_booking_system.exception.ValidationException;
 import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamInvitationRequest;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberCreationRequest;
@@ -85,18 +83,8 @@ public class TeamMemberController {
             @PathVariable UUID teamId,
             @Valid @RequestBody TeamInvitationRequest request,
             @AuthenticationPrincipal UserDetails userDetails) throws AppException {
-        User inviter = (User) userDetails;
-        TeamMemberResponse response = teamMemberService.inviteByEmail(request.email(), teamId, inviter.getId());
+        TeamMemberResponse response = teamMemberService.inviteByEmail(request.email(), teamId, (User) userDetails);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTeamMember(
-            @PathVariable UUID id,
-            @AuthenticationPrincipal UserDetails userDetails) throws NotFoundException, ValidationException {
-        User requester = (User) userDetails;
-        teamMemberService.deleteTeamMember(id, requester.getId());
-        return ResponseEntity.noContent().build();
     }
 
     // Endpoint to accept or reject an invitation
@@ -124,28 +112,21 @@ public class TeamMemberController {
         }
     }
 
-    // // Endpoint to accept or reject an invitation
-    // @GetMapping("/invitation-mail/{teamMemberId}")
-    // public ResponseEntity<Void> respondToInvitationMail(
-    //         @PathVariable UUID teamMemberId,
-    //         @RequestParam("status") TeamStatus request) throws AppException {
-
-
-    //     teamMemberService.respondToInvitation(teamMemberId, request);
-    //     return ResponseEntity.status(HttpStatus.FOUND)
-    //             .location(URI.create("http://localhost:4200/"))
-    //             .build();
-    // }
-
-
     @PostMapping("/join-request/{teamId}")
     public ResponseEntity<TeamMemberResponse> requestToJoinTeam(
             @PathVariable UUID teamId,
             @AuthenticationPrincipal UserDetails userDetails) throws AppException {
-        // authenticated user casts to our User entity
-        User user = (User) userDetails;
-        TeamMemberResponse response = teamMemberService.requestToJoinTeam(teamId, user.getId());
+        TeamMemberResponse response = teamMemberService.requestToJoinTeam(teamId, (User) userDetails);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/join-request/respond/{teamMemberId}")  
+    public ResponseEntity<TeamMemberResponse> respondToJoinRequest(
+            @PathVariable UUID teamMemberId,
+            @RequestParam TeamStatus status,
+            @AuthenticationPrincipal UserDetails principal) throws AppException {
+        return ResponseEntity.ok(
+            teamMemberService.respondToJoinRequest(teamMemberId, status, (User) principal));
     }
 
     @GetMapping("/join-requests/{teamId}")
@@ -159,13 +140,12 @@ public class TeamMemberController {
         return ResponseEntity.ok(teamMemberService.getPendingJoinRequests(teamId));
     }
 
-    @PostMapping("/join-request/respond")   // ?teamMemberId=..&status=APPROVED|REJECTED
-    public ResponseEntity<TeamMemberResponse> handleJoinRequest(
-            @RequestParam UUID teamMemberId,
-            @RequestParam TeamStatus status,
-            @AuthenticationPrincipal UserDetails principal) throws AppException {
-        User organiser = (User) principal;
-        return ResponseEntity.ok(
-                teamMemberService.respondToJoinRequest(teamMemberId, status, organiser.getId()));
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTeamMember(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) throws AppException {
+        User requester = (User) userDetails;
+        teamMemberService.deleteTeamMember(id, requester.getId());
+        return ResponseEntity.noContent().build();
     }
 }

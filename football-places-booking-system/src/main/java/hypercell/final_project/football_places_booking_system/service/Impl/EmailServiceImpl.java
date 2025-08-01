@@ -8,10 +8,13 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import hypercell.final_project.football_places_booking_system.exception.AppException;
+import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
 import hypercell.final_project.football_places_booking_system.model.db.Team;
 import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.db.User;
+import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
@@ -20,7 +23,6 @@ import hypercell.final_project.football_places_booking_system.repository.UserRep
 import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-
 
 @RequiredArgsConstructor
 @Service
@@ -32,29 +34,24 @@ public class EmailServiceImpl implements EmailService {
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
 
-
     @Override
-    public void sendRequestTOJoinTeam(UUID invitedById, UUID inviteeUserId, String email, UUID teamId) {
+    public void sendInviteToJoinTeam(User invitedBy, User inviteeUser, String email, Team team) throws AppException {
         try {
             // Get the inviter's name
-            String invitedByName = userRepository.findUsernameById(invitedById);
-            
-            // Get team details
-            Team team = teamRepository.findById(teamId)
-                    .orElseThrow(() -> new RuntimeException("Team not found"));
+            String invitedByName = invitedBy.getUserName();
                     
             String teamName = team.getName();
             String teamDescription = team.getDescription();
             
             // Get invitee's name
-            String toName = userRepository.findUsernameById(inviteeUserId);
+            String toName = inviteeUser.getUserName();
             
             // Get a team member record
-            TeamMember teamMember = teamMemberRepository.findByTeamIdAndUserId(teamId, inviteeUserId)
-                    .orElseThrow(() -> new RuntimeException("Team member record not found"));
+            TeamMember teamMember = teamMemberRepository.findByTeamIdAndUserId(team.getId(), inviteeUser.getId())
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
             
             // Send the email
-            sendHtmlTeamRequestEmail(invitedByName, teamName, teamDescription, email, toName, teamMember.getId());
+            sendHtmlTeamInviteEmail(invitedByName, teamName, teamDescription, email, toName, teamMember.getId());
             
         } catch (Exception e) {
             throw new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e);
@@ -62,16 +59,14 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-
-
-    public void sendHtmlTeamRequestEmail(String invitedByName, String teamName, String teamDescription, String email, String toName, UUID teamMemberId) {
+    public void sendHtmlTeamInviteEmail(String invitedByName, String teamName, String teamDescription, String email, String toName, UUID teamMemberId) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
             helper.setFrom("football.booking.system@gmail.com");
             helper.setTo(email);
-            helper.setSubject("Request to Join Team " + teamName);
+            helper.setSubject("Invite to Join Team " + teamName);
 
             // Create Thymeleaf context with variables
             Context context = new Context();
@@ -80,8 +75,7 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("teamDescription", teamDescription);
             context.setVariable("toName", toName);
             context.setVariable("teamMemberId", teamMemberId);
-            context.setVariable("invitationApi", "http://localhost:8080/api/team-members/invitation-mail/" + teamMemberId);
-//            context.setVariable("invitationApi", "http://localhost:8080/api/team-members/invitation/" + teamMemberId);
+            context.setVariable("invitationApi", "http://localhost:8080/api/team-members/invitation/" + teamMemberId);
 
             // Process the template
             String htmlContent = templateEngine.process("team-invitation-email-content", context);
@@ -148,6 +142,91 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("statusColor", responseStatus == TeamStatus.APPROVED ? "#27ae60" : "#e74c3c");
 
             // Process the template
+            String htmlContent = templateEngine.process("team-response-email-content", context);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send team response email: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendRequestToJoinTeam(User user, Team team, UUID teamMemberId) throws AppException {
+        try {
+            String userName = user.getUserName();
+            String teamName = team.getName();
+            String teamDescription = team.getDescription();
+            
+            sendHtmlTeamRequestEmail(userName, teamName, teamDescription, team.getCreator().getEmail(), teamMemberId);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send team request email: " + e.getMessage(), e);
+        }
+    }
+
+    private void sendHtmlTeamRequestEmail(String name, String teamName, String teamDescription, String email, UUID teamMemberId) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+            helper.setFrom("football.booking.system@gmail.com");
+            helper.setTo(email);
+            helper.setSubject("Request to Join Team " + teamName);
+
+            Context context = new Context();
+            context.setVariable("name", name);
+            context.setVariable("teamName", teamName);
+            context.setVariable("teamDescription", teamDescription);
+            context.setVariable("teamMemberId", teamMemberId);
+            context.setVariable("api", "http://localhost:8080/api/team-members/join-request/respond/" + teamMemberId);
+
+            String htmlContent = templateEngine.process("team-request-email-content", context);
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void sendResponseToJoinRequest(TeamMember teamMember, TeamStatus response) {
+        try {
+            Team team = teamRepository.findById(teamMember.getTeam().getId())
+                    .orElseThrow(() -> new RuntimeException("Team not found"));
+            String teamName = team.getName();
+
+            String email = teamMember.getUser().getEmail();
+
+            String teamMemberName = teamMember.getUser().getUserName();
+            
+            sendHtmlJoinRequestResponseEmail(teamMemberName, teamName, email, response);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send join request response email: " + e.getMessage(), e);
+        }
+    }
+    
+    private void sendHtmlJoinRequestResponseEmail(String teamMemberName, String teamName, String email, TeamStatus responseStatus) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+            helper.setFrom("football.booking.system@gmail.com");
+            helper.setTo(email);
+            
+            String subject = "Team Join Request " + (responseStatus == TeamStatus.APPROVED ? "Accepted" : "Rejected") + " - " + teamName;
+            helper.setSubject(subject);
+
+            Context context = new Context();
+            context.setVariable("teamMemberName", teamMemberName);
+            context.setVariable("teamName", teamName);
+            context.setVariable("responseStatus", responseStatus);
+            context.setVariable("isAccepted", responseStatus == TeamStatus.APPROVED);
+            context.setVariable("statusText", responseStatus == TeamStatus.APPROVED ? "accepted" : "rejected");
+            context.setVariable("statusColor", responseStatus == TeamStatus.APPROVED ? "#27ae60" : "#e74c3c");
+
             String htmlContent = templateEngine.process("team-response-email-content", context);
             helper.setText(htmlContent, true);
 

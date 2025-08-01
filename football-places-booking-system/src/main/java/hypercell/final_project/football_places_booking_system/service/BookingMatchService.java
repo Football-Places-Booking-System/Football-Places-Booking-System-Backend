@@ -3,16 +3,23 @@ package hypercell.final_project.football_places_booking_system.service;
 import java.util.List;
 import java.util.UUID;
 
-import hypercell.final_project.football_places_booking_system.exception.*;
+import org.springframework.stereotype.Service;
+
+import hypercell.final_project.football_places_booking_system.exception.AppException;
+import hypercell.final_project.football_places_booking_system.exception.ForbiddenActionException;
+import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
+import hypercell.final_project.football_places_booking_system.exception.ValidationException;
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.MatchStatus;
-import hypercell.final_project.football_places_booking_system.repository.*;
+import hypercell.final_project.football_places_booking_system.repository.BookingMatchRepository;
+import hypercell.final_project.football_places_booking_system.repository.PlaceRepository;
+import hypercell.final_project.football_places_booking_system.repository.TeamRepository;
+import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -50,7 +57,7 @@ public class BookingMatchService {
 
         // Ensure the user is an organizer
         if (!teamMemberService.isOrganizer(user.getId(), dto.teamId())) {
-            throw new ForbiddenActionException();
+            throw new ForbiddenActionException(ErrorCode.FORBIDDEN);
         }
 
         var place = placeRepository.findById(dto.placeId())
@@ -94,7 +101,7 @@ public class BookingMatchService {
         BookingMatch match = getById(matchId);
 
         if (!teamMemberService.isOrganizer(userId, match.getTeam().getId())) {
-            throw new ForbiddenActionException();
+            throw new ForbiddenActionException(ErrorCode.FORBIDDEN);
         }
 
         match.setStatus(MatchStatus.CANCELLED);
