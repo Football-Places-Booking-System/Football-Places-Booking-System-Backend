@@ -17,6 +17,7 @@ import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartMapper;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartResponseDTO;
+import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
 import hypercell.final_project.football_places_booking_system.service.BookingMatchService;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
@@ -51,7 +52,7 @@ public class MatchParticipantController {
 
         // Check if inviter is organizer
         if (!teamMemberService.isOrganizer(inviter.getId(), teamId)) {
-            throw new ForbiddenActionException();
+            throw new ForbiddenActionException(ErrorCode.FORBIDDEN);
         }
 
         var participant = matchParticipantService.inviteParticipant(dto, bookingMatchId);

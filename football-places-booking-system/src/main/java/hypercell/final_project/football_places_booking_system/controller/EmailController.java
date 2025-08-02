@@ -1,13 +1,12 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
-import hypercell.final_project.football_places_booking_system.service.Impl.EmailServiceImpl;
-import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.mail.javamail.JavaMailSender;
+import java.util.UUID;
+
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
+import hypercell.final_project.football_places_booking_system.service.Impl.EmailServiceImpl;
+import lombok.RequiredArgsConstructor;
 // Endpoints for testing email functionality.
 
 @RestController
@@ -19,7 +18,7 @@ public class EmailController {
     public String MockSendHtmlTeamRequestEmail() {
         try {
             UUID teamMemberId = UUID.fromString("9dd246b0-861e-405d-a2fd-543b30b8154d");
-            emailService.sendHtmlTeamRequestEmail("Omar Organizer", "HyperCell", "A team for football enthusiasts",
+            emailService.sendHtmlTeamInviteEmail("Omar Organizer", "HyperCell", "A team for football enthusiasts",
                     "omar.saad@ieeecusb.org", "Omar Saad", teamMemberId);
             return "Successfully sent HTML email to join team.";
 

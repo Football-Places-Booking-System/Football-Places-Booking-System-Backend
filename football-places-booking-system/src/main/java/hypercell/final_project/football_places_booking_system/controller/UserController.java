@@ -53,7 +53,7 @@ public class UserController {
         return userService.updateUser(id, userDTO);
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<ResponseDTO> deleteUser(@PathVariable UUID id) throws AppException {
         return userService.deleteUser(id);
     }

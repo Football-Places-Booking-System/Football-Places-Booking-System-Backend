@@ -34,6 +34,8 @@ public class SecurityConfig {
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/team-members/join-request/respond/**").permitAll()
+                .requestMatchers("/api/team-members/invitation/**").permitAll()
                 .requestMatchers("/api/team-members/invitation-mail/**").permitAll()
                 .requestMatchers("/api/match-participants/invitation-mail/**").permitAll()
                 .anyRequest().authenticated()
