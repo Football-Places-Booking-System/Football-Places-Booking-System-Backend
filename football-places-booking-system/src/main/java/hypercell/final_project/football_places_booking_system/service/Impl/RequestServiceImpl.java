@@ -28,7 +28,7 @@ public class RequestServiceImpl implements RequestService  {
     private final UserRepository userRepository;
     
     @Override
-    public Request createRequest(UUID senderId, UUID receiverId, RequestType requestType) throws AppException {
+    public Request createRequest(UUID senderId, UUID receiverId, RequestType requestType, UUID joker_id) throws AppException {
         log.info("Creating request from sender {} to receiver {} of type {}", senderId, receiverId, requestType);
         
         User sender = userRepository.findById(senderId)
@@ -43,6 +43,7 @@ public class RequestServiceImpl implements RequestService  {
                 .requestType(requestType)
                 .status(ResponseStatus.PENDING)
                 .sendTime(LocalDateTime.now())
+                .joker_id(joker_id)
                 .build();
         
         Request savedRequest = requestRepository.save(request);
@@ -52,7 +53,7 @@ public class RequestServiceImpl implements RequestService  {
     }
     
     @Override
-    public Request createRequestWithMessage(UUID senderId, UUID receiverId, RequestType requestType, String message) throws AppException {
+    public Request createRequestWithMessage(UUID senderId, UUID receiverId, RequestType requestType, String message, UUID joker_id) throws AppException {
         log.info("Creating request with message from sender {} to receiver {} of type {}", senderId, receiverId, requestType);
         
         User sender = userRepository.findById(senderId)
@@ -68,6 +69,7 @@ public class RequestServiceImpl implements RequestService  {
                 .status(ResponseStatus.PENDING)
                 .sendTime(LocalDateTime.now())
                 .requestMessage(message)
+                .joker_id(joker_id)
                 .build();
         
         Request savedRequest = requestRepository.save(request);

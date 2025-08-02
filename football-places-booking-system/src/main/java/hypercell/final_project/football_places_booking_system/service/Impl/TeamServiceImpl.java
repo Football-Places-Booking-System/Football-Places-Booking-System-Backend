@@ -158,6 +158,7 @@ public class TeamServiceImpl implements TeamService {
 
     private TeamMemberResponse mapToTeamMemberResponse(TeamMember teamMember) {
         return new TeamMemberResponse(
+                teamMember.getId(),
                 teamMember.getUser().getId(),
                 teamMember.getUser().getUserName(),
                 teamMember.getRole(),

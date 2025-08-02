@@ -10,9 +10,9 @@ import hypercell.final_project.football_places_booking_system.model.enums.Respon
 
 public interface RequestService {
     
-    Request createRequest(UUID senderId, UUID receiverId, RequestType requestType) throws AppException;
+    Request createRequest(UUID senderId, UUID receiverId, RequestType requestType, UUID joker_id) throws AppException;
     
-    Request createRequestWithMessage(UUID senderId, UUID receiverId, RequestType requestType, String message) throws AppException;
+    Request createRequestWithMessage(UUID senderId, UUID receiverId, RequestType requestType, String message, UUID joker_id) throws AppException;
     
     Request updateRequestStatus(UUID requestId, ResponseStatus status) throws AppException;
     
