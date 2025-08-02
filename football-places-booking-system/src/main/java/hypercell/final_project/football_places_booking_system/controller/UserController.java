@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,11 +17,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import hypercell.final_project.football_places_booking_system.exception.AppException;
+import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.ResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.UserDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.PasswordDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.BooleanResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.UserRole;
 import hypercell.final_project.football_places_booking_system.model.enums.UserStatus;
 import hypercell.final_project.football_places_booking_system.service.UserService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import lombok.RequiredArgsConstructor;
 
 
@@ -51,6 +57,11 @@ public class UserController {
     @PatchMapping("/{id}")
     public ResponseEntity<ResponseDTO> updateUser(@PathVariable UUID id, @RequestBody UserDTO userDTO) throws AppException {
         return userService.updateUser(id, userDTO);
+    }
+
+    @PostMapping("/check-password")
+    public ResponseEntity<BooleanResponseDTO> checkPassword(@AuthenticationPrincipal UserDetails user, @RequestBody PasswordDTO password) {
+        return userService.checkPassword((User) user, password);
     }
 
     @DeleteMapping("/{id}")
