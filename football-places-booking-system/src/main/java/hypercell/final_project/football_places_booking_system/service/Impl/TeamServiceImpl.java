@@ -32,6 +32,8 @@ import hypercell.final_project.football_places_booking_system.repository.UserRep
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamService;
 import lombok.AllArgsConstructor;
 
+import java.util.stream.Collectors;
+
 @AllArgsConstructor
 @Service
 public class TeamServiceImpl implements TeamService {
@@ -154,6 +156,17 @@ public class TeamServiceImpl implements TeamService {
 
         return pageOfMemberships
                 .map(teamMember -> mapToTeamResponse(teamMember.getTeam()));
+    }
+
+    @Override
+    public List<TeamResponse> getAllTeams() throws AppException {
+        List<Team> teams = teamRepository.findAll();
+        if (teams.isEmpty()) {
+            throw new NoContentException(ErrorCode.NO_CONTENT);
+        }
+        return teams.stream()
+                .map(this::mapToTeamResponse)
+                .collect(Collectors.toList());
     }
 
     private TeamMemberResponse mapToTeamMemberResponse(TeamMember teamMember) {

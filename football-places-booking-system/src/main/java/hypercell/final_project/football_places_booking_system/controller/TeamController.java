@@ -1,5 +1,6 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -47,7 +48,7 @@ public class TeamController {
         return teamService.getTeamById(id);
     }
 
-    @GetMapping("/all")
+    @GetMapping("/all-filtered")
     public Page<TeamResponse> filterTeams(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String description,
@@ -56,6 +57,10 @@ public class TeamController {
     ) throws AppException {
         Pageable pageable = PageRequest.of(page, size);
         return teamService.filterTeams(name, description, pageable);
+    }
+    @GetMapping("/all")
+    public List<TeamResponse> getAllTeams() throws AppException {
+        return teamService.getAllTeams();
     }
     
     @PreAuthorize("@authService.hasTeamRole(#id, 'ORGANIZER')")

@@ -1,5 +1,6 @@
 package hypercell.final_project.football_places_booking_system.service.Interfaces;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -16,6 +17,7 @@ public interface TeamService {
     TeamResponse createTeam(TeamCreationRequest teamCreationRequest, UUID id) throws AppException;
     TeamResponse getTeamById(UUID id) throws NotFoundException;
     Page<TeamResponse> filterTeams(String name, String description, Pageable pageable) throws AppException;
+    public List<TeamResponse> getAllTeams() throws AppException;
     TeamResponse updateTeam(UUID id, TeamCreationRequest teamCreationRequest) throws AppException;
     ResponseEntity<ResponseDTO> deleteTeam(UUID id) throws AppException;
     Page<TeamResponse> getTeamsByUser(UUID userId, int page, int size) throws AppException;
