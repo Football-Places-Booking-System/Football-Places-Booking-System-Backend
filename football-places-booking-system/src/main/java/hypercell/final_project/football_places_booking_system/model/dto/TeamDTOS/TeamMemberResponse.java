@@ -9,6 +9,7 @@ import java.util.UUID;
 public record TeamMemberResponse(
         UUID userId,
         String userName,
+        String email,
         TeamRole role,
         TeamStatus status,
         UUID teamId

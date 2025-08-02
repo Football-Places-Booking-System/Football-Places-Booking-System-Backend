@@ -160,6 +160,7 @@ public class TeamServiceImpl implements TeamService {
         return new TeamMemberResponse(
                 teamMember.getUser().getId(),
                 teamMember.getUser().getUserName(),
+                teamMember.getUser().getEmail(),
                 teamMember.getRole(),
                 teamMember.getStatus(),
                 teamMember.getTeam().getId()
