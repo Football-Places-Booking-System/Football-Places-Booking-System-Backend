@@ -154,4 +154,15 @@ public class TeamMemberController {
         teamMemberService.deleteTeamMember(id, requester.getId());
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/isOrganizer/{teamId}")
+    public ResponseEntity<Boolean> getTeamMember(
+            @PathVariable UUID teamId,
+            @AuthenticationPrincipal UserDetails userDetails) throws AppException {
+        User user = (User) userDetails;
+
+        boolean isOrganizer = teamMemberService.isOrganizer(user.getId(), teamId);
+        return ResponseEntity.ok(isOrganizer);
+    }
+
 }

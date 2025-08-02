@@ -3,6 +3,7 @@ package hypercell.final_project.football_places_booking_system.controller;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +35,9 @@ import lombok.RequiredArgsConstructor;
 public class TeamController {
 
     private final TeamService teamService;
-    
+    private final TeamMemberService teamMemberService;
+
+
     @PostMapping
     public ResponseEntity<TeamResponse> createTeam(
             @RequestBody TeamCreationRequest request,
@@ -88,4 +91,15 @@ public class TeamController {
         User user = (User) userDetails;
         return ResponseEntity.ok(teamService.getTeamsByUser(user.getId(), page, size));
     }
+
+    @GetMapping("/isOrganizer/{teamId}")
+    public ResponseEntity<Boolean> getTeamMember(
+            @PathVariable UUID teamId,
+            @AuthenticationPrincipal UserDetails userDetails) throws AppException {
+        User user = (User) userDetails;
+
+        boolean isOrganizer = teamMemberService.isOrganizer(user.getId(), teamId);
+        return ResponseEntity.ok(isOrganizer);
+    }
+
 }
