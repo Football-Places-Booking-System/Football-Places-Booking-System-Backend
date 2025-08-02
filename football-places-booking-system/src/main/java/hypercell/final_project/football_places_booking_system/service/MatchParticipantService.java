@@ -88,7 +88,7 @@ public class MatchParticipantService {
         String invitationMessage = String.format("%s has invited you to join match at %s with team %s from %s to %s", 
             senderName, placeName, teamName, startTime, endTime);
         
-        requestService.createRequestWithMessage(senderId, receiverId, RequestType.MATCH_INVITATION, invitationMessage);
+        requestService.createRequestWithMessage(senderId, receiverId, RequestType.MATCH_INVITATION, invitationMessage, matchParticipant.getId());
 
         // Send invitation email
         emailService.sendInvitationEmail(dto.email(), matchParticipant);

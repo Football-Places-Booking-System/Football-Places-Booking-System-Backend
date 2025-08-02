@@ -104,6 +104,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
 
     private TeamMemberResponse mapToTeamMemberResponse(TeamMember teamMember) {
         return TeamMemberResponse.builder()
+                .id(teamMember.getId())
                 .userId(teamMember.getUser().getId())
                 .userName(teamMember.getUser().getUsername())
                 .role(teamMember.getRole())
@@ -173,7 +174,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // 8. Create Request entity for the invitation with meaningful message
         String invitationMessage = String.format("%s has invited you to join Team %s", 
                 inviterUser.getUserName(), team.getName());
-        requestService.createRequestWithMessage(invitedById, user.getId(), RequestType.JOIN_TEAM_INVITATION, invitationMessage);
+        requestService.createRequestWithMessage(invitedById, user.getId(), RequestType.JOIN_TEAM_INVITATION, invitationMessage, teamMemberResponse.id());
         
         // 8. Send the invitation email
         log.info("Sending Team invitation email to: {}", email);
@@ -291,7 +292,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // Create Request entity for the join request with meaningful message
         String requestMessage = String.format("%s is asking to join %s", 
                 user.getUserName(), team.getName());
-        requestService.createRequestWithMessage(userId, team.getCreator().getId(), RequestType.JOIN_TEAM_REQUEST, requestMessage);
+        requestService.createRequestWithMessage(userId, team.getCreator().getId(), RequestType.JOIN_TEAM_REQUEST, requestMessage, teamMember.getId());
         
         return mapToTeamMemberResponse(teamMember);
     }

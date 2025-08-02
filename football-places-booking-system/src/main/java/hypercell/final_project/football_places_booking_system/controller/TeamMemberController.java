@@ -52,6 +52,7 @@ public class TeamMemberController {
     // Retrieves all team members by team ID
     public ResponseEntity<List<TeamMemberResponse>> getTeamMembersByTeam(
             @PathVariable UUID teamId) {
+        System.out.println("Inside get team members by team ID: " + teamId + " ...");
         List<TeamMemberResponse> responses = teamMemberService.getTeamMembersByTeam(teamId);
         return ResponseEntity.ok(responses);
     }
