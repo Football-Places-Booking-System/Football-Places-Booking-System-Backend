@@ -159,27 +159,27 @@ public class EmailServiceImpl implements EmailService {
             String teamName = team.getName();
             String teamDescription = team.getDescription();
             
-            sendHtmlTeamRequestEmail(userName, teamName, teamDescription, team.getCreator().getEmail(), teamMemberId);
+            sendHtmlTeamRequestEmail(userName, team, teamMemberId);
         } catch (Exception e) {
             throw new RuntimeException("Failed to send team request email: " + e.getMessage(), e);
         }
     }
 
-    private void sendHtmlTeamRequestEmail(String name, String teamName, String teamDescription, String email, UUID teamMemberId) {
+    private void sendHtmlTeamRequestEmail(String name, Team team, UUID teamMemberId) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
             helper.setFrom("football.booking.system@gmail.com");
-            helper.setTo(email);
-            helper.setSubject("Request to Join Team " + teamName);
+            helper.setTo(team.getCreator().getEmail());
+            helper.setSubject("Request to Join Team " + team.getName());
 
             Context context = new Context();
             context.setVariable("name", name);
-            context.setVariable("teamName", teamName);
-            context.setVariable("teamDescription", teamDescription);
+            context.setVariable("teamName", team.getName());
+            context.setVariable("teamDescription", team.getDescription());
             context.setVariable("teamMemberId", teamMemberId);
-            context.setVariable("api", "http://localhost:8080/api/team-members/join-request/respond/" + teamMemberId);
+            context.setVariable("api", "http://localhost:8080/api/team-members/join-request/respond/" + teamMemberId + "/" + team.getCreator().getId());
 
             String htmlContent = templateEngine.process("team-request-email-content", context);
             helper.setText(htmlContent, true);
@@ -227,7 +227,7 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("statusText", responseStatus == TeamStatus.APPROVED ? "accepted" : "rejected");
             context.setVariable("statusColor", responseStatus == TeamStatus.APPROVED ? "#27ae60" : "#e74c3c");
 
-            String htmlContent = templateEngine.process("team-response-email-content", context);
+            String htmlContent = templateEngine.process("team-request-response", context);
             helper.setText(htmlContent, true);
 
             mailSender.send(message);

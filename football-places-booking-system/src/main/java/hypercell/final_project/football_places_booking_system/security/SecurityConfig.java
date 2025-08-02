@@ -35,6 +35,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/team-members/join-request/respond/**").permitAll()
+                .requestMatchers("/api/team-members/invitation/**").permitAll()
                 .anyRequest().authenticated()
             )
             .exceptionHandling(eh -> eh

@@ -50,7 +50,7 @@
         <p th:text="'Hello ' + ${teamMemberName} + ','">Hello Team Member,</p>
 
         <p>
-            Your request to join <strong th:text="${teamName}">Team Name</strong> has been 
+            Your request to join <strong th:text="${teamName}">Team Name</strong> Team has been 
             <span th:class="${isAccepted} ? 'accepted' : 'rejected'" 
                   th:text="${statusText}">processed</span>.
         </p>

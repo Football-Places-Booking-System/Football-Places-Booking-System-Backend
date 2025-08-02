@@ -15,9 +15,6 @@ import hypercell.final_project.football_places_booking_system.model.enums.TeamSt
 
 
 public interface TeamMemberService {
-
-
-
     TeamMemberResponse createTeamMember(TeamMemberCreationRequest request, UUID creatorid) throws NotFoundException;
     List<TeamMemberResponse>getTeamMembersByTeam(UUID teamId);
     List<TeamMemberResponse> getTeamMembersByUserId(UUID userId);
@@ -26,11 +23,8 @@ public interface TeamMemberService {
     public void deleteTeamMember(UUID teamMemberId, UUID requesterId) throws NotFoundException, ValidationException;
     public boolean isOrganizer(UUID userId, UUID teamId) throws NotFoundException;
     public TeamMemberResponse inviteByEmail(String email, UUID teamId, User inviterUser) throws AppException;
-
     TeamMemberInviteResponse respondToInvitation(UUID teamMemberId, TeamStatus request) throws AppException;
-
-    // Join team request methods
     TeamMemberResponse requestToJoinTeam(UUID teamId, User user) throws AppException;
     List<TeamMemberResponse> getPendingJoinRequests(UUID teamId) throws AppException;
-    TeamMemberResponse respondToJoinRequest(UUID teamMemberId, TeamStatus response, User organizer) throws AppException;
+    TeamMemberResponse respondToJoinRequest(UUID teamMemberId, TeamStatus response, UUID organizerId) throws AppException;
 }
