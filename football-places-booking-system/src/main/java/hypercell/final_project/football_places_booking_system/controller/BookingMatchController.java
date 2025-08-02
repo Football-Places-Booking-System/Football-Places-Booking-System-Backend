@@ -26,35 +26,22 @@ public class BookingMatchController {
 
     private final BookingMatchService bookingMatchService;
 
-    /**
-     * Create a new booking match.
-     * Only ORGANIZERs in the team can create bookings.
-     */
     @PostMapping
     public ResponseEntity<BookingResponseDTO> create(
             @RequestBody BookingDTO dto,
             @AuthenticationPrincipal UserDetails userDetails
     ) throws AppException {
-
-        // Get the logged-in user from the token
         User currentUser = (User) userDetails;
-
         BookingMatch created = bookingMatchService.createBookingMatch(dto, currentUser.getId());
         return new ResponseEntity<>(toResponseDTO(created), HttpStatus.CREATED);
     }
 
-    /**
-     * Cancel a booking match.
-     * Only ORGANIZERs in the team can cancel bookings.
-     */
     @PatchMapping("/cancel/{id}")
     public ResponseEntity<String> cancel(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails
     ) throws AppException {
-
         User currentUser = (User) userDetails;
-
         bookingMatchService.cancelBooking(id, currentUser.getId());
         return ResponseEntity.ok("Match cancelled");
     }
@@ -96,6 +83,32 @@ public class BookingMatchController {
     public ResponseEntity<List<BookingResponseDTO>> getAll() {
         return ResponseEntity.ok(
                 bookingMatchService.getAll().stream()
+                        .map(BookingMapper::toResponseDTO)
+                        .toList()
+        );
+    }
+
+    // NEW: Get matches where the current user is an Organizer
+    @GetMapping("/my/organizer")
+    public ResponseEntity<List<BookingResponseDTO>> getMyMatchesAsOrganizer(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws AppException {
+        User currentUser = (User) userDetails;
+        return ResponseEntity.ok(
+                bookingMatchService.getMyMatchesAsOrganizer(currentUser.getId()).stream()
+                        .map(BookingMapper::toResponseDTO)
+                        .toList()
+        );
+    }
+
+    // NEW: Get matches where the current user is a Player
+    @GetMapping("/my/player")
+    public ResponseEntity<List<BookingResponseDTO>> getMyMatchesAsPlayer(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws AppException {
+        User currentUser = (User) userDetails;
+        return ResponseEntity.ok(
+                bookingMatchService.getMyMatchesAsPlayer(currentUser.getId()).stream()
                         .map(BookingMapper::toResponseDTO)
                         .toList()
         );
