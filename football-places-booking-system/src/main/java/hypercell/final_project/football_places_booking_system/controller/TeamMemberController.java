@@ -6,11 +6,11 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.model.db.User;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamInvitationRequest;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberCreationRequest;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberInviteResponse;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberResponse;
@@ -59,6 +59,7 @@ public class TeamMemberController {
     // Retrieves all team members by team ID
     public ResponseEntity<List<TeamMemberResponse>> getTeamMembersByTeam(
             @PathVariable UUID teamId) {
+        System.out.println("Inside get team members by team ID: " + teamId + " ...");
         List<TeamMemberResponse> responses = teamMemberService.getTeamMembersByTeam(teamId);
         return ResponseEntity.ok(responses);
     }
@@ -81,36 +82,40 @@ public class TeamMemberController {
     @PostMapping("/invite/{teamId}")
     public ResponseEntity<TeamMemberResponse> inviteByEmail(
             @PathVariable UUID teamId,
-            @Valid @RequestBody TeamInvitationRequest request,
+            @Valid @RequestBody InvitationRequest request,
             @AuthenticationPrincipal UserDetails userDetails) throws AppException {
         TeamMemberResponse response = teamMemberService.inviteByEmail(request.email(), teamId, (User) userDetails);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     // Endpoint to accept or reject an invitation
-    @GetMapping("/invitation/{teamMemberId}")
+    @PatchMapping("/respond/{teamMemberId}")
     public ResponseEntity<?> respondToInvitation(
             @PathVariable UUID teamMemberId,
-            @RequestParam("status") TeamStatus request,
-            @RequestParam(value = "redirect", defaultValue = "false") boolean shouldRedirect
-            ) throws AppException {
+            @RequestParam("status") TeamStatus request
+    ) throws AppException {
 
         System.out.println("Responding to invitation for team member ID: " + teamMemberId + " with request: " + request);
 
         TeamMemberInviteResponse response = teamMemberService.respondToInvitation(teamMemberId, request);
 
-        if (shouldRedirect) {
-            // For email clicks - redirect to Angular frontend
-            String redirectUrl = "http://localhost:4200/invitation-response?status=" + request.name().toLowerCase();
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(redirectUrl))
-                    .build();
+        return ResponseEntity.ok(response);
 
-        } else {
-            // For frontend API calls - return JSON response
-            return ResponseEntity.ok(response);
-        }
     }
+
+    // Endpoint to accept or reject an invitation
+    @GetMapping("/respond-mail/{teamMemberId}")
+    public ResponseEntity<Void> respondToInvitationMail(
+            @PathVariable UUID teamMemberId,
+            @RequestParam("status") TeamStatus request) throws AppException {
+
+
+        teamMemberService.respondToInvitation(teamMemberId, request);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create("http://localhost:4200/"))
+                .build();
+    }
+
 
     @PostMapping("/join-request/{teamId}")
     public ResponseEntity<TeamMemberResponse> requestToJoinTeam(

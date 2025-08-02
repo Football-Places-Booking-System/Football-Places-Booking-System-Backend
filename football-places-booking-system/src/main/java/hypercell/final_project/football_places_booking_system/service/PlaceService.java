@@ -27,13 +27,13 @@ public class PlaceService {
 
     private final PlaceRepository placeRepository;
 
-    public PlaceDTO createPlace(PlaceDTO placeDto) throws AppException{
-        if (placeDto.name() == null && placeDto.location() == null && placeDto.imageUrl() == null && placeDto.placeType() == null) {
-            throw new NoDataException(ErrorCode.NO_DATA);
-        }
-
+    public PlaceDTO createPlace(PlaceDTO placeDto) throws AppException {
         if (placeDto.name() == null || placeDto.name().isEmpty()) {
             throw new ValidationException(ErrorCode.INVALID_PLACE_NAME);
+        }
+
+        if (placeDto.description() == null || placeDto.description().isEmpty()) {
+            throw new ValidationException(ErrorCode.INVALID_PLACE_DESCRIPTION);
         }
 
         if (placeDto.location() == null || placeDto.location().isEmpty()) {
@@ -50,6 +50,7 @@ public class PlaceService {
 
         Place place = new Place();
         place.setName(placeDto.name());
+        place.setDescription(placeDto.description());
         place.setLocation(placeDto.location());
         place.setImageUrl(placeDto.imageUrl());
         place.setPlaceType(placeDto.placeType());
@@ -59,6 +60,7 @@ public class PlaceService {
         return new PlaceDTO(
                 newPlace.getId(),
                 newPlace.getName(),
+                newPlace.getDescription(),
                 newPlace.getLocation(),
                 newPlace.getPlaceType(),
                 newPlace.getImageUrl()
@@ -72,6 +74,7 @@ public class PlaceService {
         return new PlaceDTO(
             place.getId(),
             place.getName(),
+            place.getDescription(),
             place.getLocation(),
             place.getPlaceType(),
             place.getImageUrl()
@@ -110,6 +113,7 @@ public class PlaceService {
         return places.map(place -> new PlaceDTO(
             place.getId(),
             place.getName(),
+            place.getDescription(),
             place.getLocation(),
             place.getPlaceType(),
             place.getImageUrl()
@@ -119,12 +123,16 @@ public class PlaceService {
     public ResponseEntity<ResponseDTO> updatePlace(UUID id, PlaceDTO updatedPlace) throws AppException {
         Place place = placeRepository.findById(id).orElseThrow(() -> new NotFoundException(ErrorCode.PLACE_NOT_FOUND));
 
-        if (updatedPlace.name() == null && updatedPlace.location() == null && updatedPlace.imageUrl() == null && updatedPlace.placeType() == null) {
+        if (updatedPlace.name() == null && updatedPlace.description() == null && updatedPlace.location() == null && updatedPlace.imageUrl() == null && updatedPlace.placeType() == null) {
             throw new NoDataException(ErrorCode.NO_DATA);
         }
 
         if (updatedPlace.name() != null && !updatedPlace.name().isEmpty()) {
             place.setName(updatedPlace.name());
+        }
+
+        if (updatedPlace.description() != null && !updatedPlace.description().isEmpty()) {
+            place.setDescription(updatedPlace.description());
         }
 
         if (updatedPlace.location() != null && !updatedPlace.location().isEmpty()) {

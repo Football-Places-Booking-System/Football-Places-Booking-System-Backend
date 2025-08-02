@@ -2,6 +2,6 @@ package hypercell.final_project.football_places_booking_system.model.dto.TeamDTO
 
 import jakarta.validation.constraints.Email;
 
-public record TeamInvitationRequest(
+public record InvitationRequest(
         @Email String email
 ) {}

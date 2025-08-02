@@ -36,12 +36,14 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/team-members/join-request/respond/**").permitAll()
                 .requestMatchers("/api/team-members/invitation/**").permitAll()
+                .requestMatchers("/api/team-members/invitation-mail/**").permitAll()
+                .requestMatchers("/api/match-participants/invitation-mail/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .exceptionHandling(eh -> eh
-                .authenticationEntryPoint(customAuthenticationEntryPoint) 
-                .accessDeniedHandler(customAccessDeniedHandler)          
-            )
+//            .exceptionHandling(eh -> eh
+//                .authenticationEntryPoint(customAuthenticationEntryPoint)
+//                .accessDeniedHandler(customAccessDeniedHandler)
+//            )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
             .build();
     }

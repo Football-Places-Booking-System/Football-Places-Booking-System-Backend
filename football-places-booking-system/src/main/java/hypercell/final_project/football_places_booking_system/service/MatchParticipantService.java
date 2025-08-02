@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
@@ -38,14 +39,14 @@ public class MatchParticipantService {
     private final RequestRepository requestRepository;
 
     // Invite a user to a match
-    public MatchParticipant inviteParticipant(MatchPartDTO dto) throws AppException {
+    public MatchParticipant inviteParticipant(InvitationRequest dto, UUID bookingMatchId) throws AppException {
         // Validate email
         if (dto.email() == null || dto.email().trim().isEmpty()) {
             throw new ValidationException(ErrorCode.INVALID_PARTICIPANT_EMAIL);
         }
 
         // Validate booking match ID
-        if (dto.bookingMatchId() == null) {
+        if (bookingMatchId == null) {
             throw new ValidationException(ErrorCode.INVALID_BOOKING_MATCH_ID);
         }
 
@@ -53,7 +54,7 @@ public class MatchParticipantService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
         // Use service instead of direct repository (this will validate booking match exists)
-        BookingMatch match = bookingMatchService.getById(dto.bookingMatchId());
+        BookingMatch match = bookingMatchService.getById(bookingMatchId);
 
         // Check if user is already a participant in this match
         boolean alreadyParticipant = matchParticipantRepository
@@ -87,7 +88,7 @@ public class MatchParticipantService {
         String invitationMessage = String.format("%s has invited you to join match at %s with team %s from %s to %s", 
             senderName, placeName, teamName, startTime, endTime);
         
-        requestService.createRequestWithMessage(senderId, receiverId, RequestType.MATCH_INVITATION, invitationMessage);
+        requestService.createRequestWithMessage(senderId, receiverId, RequestType.MATCH_INVITATION, invitationMessage, matchParticipant.getId());
 
         // Send invitation email
         emailService.sendInvitationEmail(dto.email(), matchParticipant);

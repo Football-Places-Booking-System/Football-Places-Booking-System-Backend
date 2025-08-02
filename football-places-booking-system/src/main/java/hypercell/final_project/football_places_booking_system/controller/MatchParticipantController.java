@@ -4,17 +4,12 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.exception.ForbiddenActionException;
@@ -42,16 +37,17 @@ public class MatchParticipantController {
      * Invite a user to participate in a match.
      * Only ORGANIZERs in the team can send invitations.
      */
-    @PostMapping("/invite")
+    @PostMapping("/invite/{bookingMatchId}")
     public ResponseEntity<MatchPartResponseDTO> invite(
-            @RequestBody MatchPartDTO dto,
+            @PathVariable UUID bookingMatchId,
+            @RequestBody InvitationRequest dto,
             @AuthenticationPrincipal UserDetails userDetails
     ) throws AppException {
 
         User inviter = (User) userDetails;
 
         // Fetch booking match via BookingMatchService
-        var bookingMatch = bookingMatchService.getById(dto.bookingMatchId());
+        var bookingMatch = bookingMatchService.getById(bookingMatchId);
         UUID teamId = bookingMatch.getTeam().getId();
 
         // Check if inviter is organizer
@@ -59,26 +55,27 @@ public class MatchParticipantController {
             throw new ForbiddenActionException(ErrorCode.FORBIDDEN);
         }
 
-        var participant = matchParticipantService.inviteParticipant(dto);
+        var participant = matchParticipantService.inviteParticipant(dto, bookingMatchId);
         return new ResponseEntity<>(MatchPartMapper.toResponseDTO(participant), HttpStatus.CREATED);
     }
 
     /**
      * Respond to invitation (Accept or Decline).
      */
-    @GetMapping("/{id}/respond")
+//    @PutMapping("/respond/{id}")
+    @PatchMapping("/respond/{matchParticipantId}")
     public ResponseEntity<MatchPartResponseDTO> respond(
-            @PathVariable UUID id,
+            @PathVariable UUID matchParticipantId,
             @RequestParam ParticipantStatus status
     ) throws AppException {
-        var participant = matchParticipantService.respondToInvitation(id, status);
+        var participant = matchParticipantService.respondToInvitation(matchParticipantId, status);
         return ResponseEntity.ok(MatchPartMapper.toResponseDTO(participant));
     }
 
     /**
      * Respond to invitation (Accept or Decline).
      */
-    @GetMapping("/{id}/respond-mail")
+    @GetMapping("/respond-mail/{id}")
     public ResponseEntity<Void> respondMail(
             @PathVariable UUID id,
             @RequestParam ParticipantStatus status
