@@ -3,8 +3,8 @@ package hypercell.final_project.football_places_booking_system.model.db;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import hypercell.final_project.football_places_booking_system.model.enums.ResponseStatus;
 import hypercell.final_project.football_places_booking_system.model.enums.RequestType;
+import hypercell.final_project.football_places_booking_system.model.enums.ResponseStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -55,4 +55,8 @@ public class Request {
     @ManyToOne
     @JoinColumn(name = "receiver_id")
     private User receiver;
+
+    // used to stoe the id of a TeamMember or MatchParticipant entity related to this request
+    @Column(nullable = false, name = "joker_id")
+    private UUID joker_id;
 }
