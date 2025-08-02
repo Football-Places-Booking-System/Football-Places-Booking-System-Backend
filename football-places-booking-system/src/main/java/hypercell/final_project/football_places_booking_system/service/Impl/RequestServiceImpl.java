@@ -3,6 +3,7 @@ package hypercell.final_project.football_places_booking_system.service.Impl;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -10,6 +11,7 @@ import hypercell.final_project.football_places_booking_system.exception.AppExcep
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.model.db.Request;
 import hypercell.final_project.football_places_booking_system.model.db.User;
+import hypercell.final_project.football_places_booking_system.model.dto.RequestDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.RequestType;
 import hypercell.final_project.football_places_booking_system.model.enums.ResponseStatus;
@@ -127,10 +129,22 @@ public class RequestServiceImpl implements RequestService  {
     }
     
     @Override
-    public List<Request> getRequestsByReceiver(UUID receiverId) throws AppException {
+    public List<RequestDTO> getRequestsByReceiver(UUID receiverId) throws AppException {
         User receiver = userRepository.findById(receiverId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
-        return requestRepository.findByReceiver(receiver);
+        // requestRepository.findByReceiver(receiver);
+        return requestRepository.findByReceiver(receiver).stream()
+                .map(request -> new RequestDTO(
+                        request.getId(),
+                        request.getSendTime(),
+                        request.getRequestType(),
+                        request.getStatus(),
+                        request.getRequestMessage(),
+                        request.getSender().getId(),
+                        request.getReceiver().getId(),
+                        request.getJoker_id()
+                ))
+                .collect(Collectors.toList());
     }
     
     @Override
