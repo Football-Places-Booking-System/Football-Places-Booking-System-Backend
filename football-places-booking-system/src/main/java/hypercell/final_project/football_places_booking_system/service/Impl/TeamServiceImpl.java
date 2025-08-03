@@ -213,6 +213,7 @@ public class TeamServiceImpl implements TeamService {
                 .description(team.getDescription())
                 .createdBy(team.getCreator().getId())
                 .createdAt(team.getCreatedAt())
+                .createdByUsername(team.getCreator().getUserName())
                 .members(mapTeamMembers(team.getTeamMembers()))
                 .build();
     }

@@ -12,6 +12,7 @@ public record TeamResponse(
         String name,
         String description,
         UUID createdBy,
+        String createdByUsername,
         LocalDateTime createdAt,
         List<TeamMemberResponse> members
 ) { }
