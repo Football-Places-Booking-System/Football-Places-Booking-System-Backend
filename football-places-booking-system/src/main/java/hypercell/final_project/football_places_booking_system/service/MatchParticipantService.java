@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import org.springframework.stereotype.Service;
 
@@ -193,4 +194,62 @@ public class MatchParticipantService {
         
         return matchParticipantRepository.findByBookingMatchId(matchId);
     }
+
+    // Get all matches that a user has participated in
+    public List<BookingMatch> getUserParticipatedMatches(UUID userId) throws AppException {
+        if (userId == null) {
+            throw new ValidationException(ErrorCode.INVALID_PARTICIPANT_ID);
+        }
+
+        // Validate user existence
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+
+        // Fetch all participant records for this user
+        List<MatchParticipant> participations = matchParticipantRepository.findByUserId(userId);
+
+        // Map to booking matches
+        return participations.stream()
+                .map(MatchParticipant::getBookingMatch)
+                .distinct()
+                .toList();
+    }
+
+    public List<BookingDetailRespDTO> getUserParticipatedMatchesDetailed(UUID userId) throws AppException {
+        if (userId == null) {
+            throw new ValidationException(ErrorCode.INVALID_PARTICIPANT_ID);
+        }
+
+        // Validate user
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+
+        // Fetch all participant entries for this user
+        List<MatchParticipant> participations = matchParticipantRepository.findByUserId(userId);
+
+        // Map to detailed response DTO
+        return participations.stream()
+                .map(mp -> {
+                    BookingMatch match = mp.getBookingMatch();
+                    return BookingDetailRespDTO.builder()
+                            .id(match.getId())
+                            .startTime(match.getStartTime())
+                            .endTime(match.getEndTime())
+                            .status(match.getStatus())
+                            .createdAt(match.getCreatedAt())
+
+                            .placeId(match.getPlace().getId())
+                            .placeName(match.getPlace().getName())
+
+                            .teamId(match.getTeam().getId())
+                            .teamName(match.getTeam().getName())
+
+                            .userId(match.getUser().getId())
+                            .userName(match.getUser().getUserName())
+                            .build();
+                })
+                .distinct()
+                .toList();
+    }
+
 }

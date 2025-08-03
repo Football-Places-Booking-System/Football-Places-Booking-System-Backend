@@ -7,14 +7,19 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Builder
-public record BookingResponseDTO(
+public record BookingDetailRespDTO(
         UUID id,
         LocalDateTime startTime,
         LocalDateTime endTime,
         MatchStatus status,
-        UUID userId,
+        LocalDateTime createdAt,
+
+        UUID placeId,
+        String placeName,
+
         UUID teamId,
         String teamName,
-        UUID placeId,
-        String placeName
+
+        UUID userId,
+        String userName
 ) {}
