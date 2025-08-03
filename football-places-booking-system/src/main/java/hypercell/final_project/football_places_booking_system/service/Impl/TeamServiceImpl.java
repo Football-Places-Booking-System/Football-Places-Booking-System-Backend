@@ -2,6 +2,7 @@ package hypercell.final_project.football_places_booking_system.service.Impl;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,8 +32,6 @@ import hypercell.final_project.football_places_booking_system.repository.TeamRep
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamService;
 import lombok.AllArgsConstructor;
-
-import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -156,6 +155,26 @@ public class TeamServiceImpl implements TeamService {
 
         return pageOfMemberships
                 .map(teamMember -> mapToTeamResponse(teamMember.getTeam()));
+    }
+
+    @Override
+    public Page<TeamResponse> getOtherTeams(UUID userId, int page, int size) throws AppException {
+        Pageable pageable = PageRequest.of(page, size);
+
+        List<UUID> userTeamIds = teamMemberRepository.findByUserIdAndStatus(userId, TeamStatus.APPROVED)
+                .stream()
+                .map(teamMember -> teamMember.getTeam().getId())
+                .collect(Collectors.toList());
+        
+        Page<Team> teams = teamRepository.findAll(Specification.where((root, query, cb) ->
+                cb.not(root.get("id").in(userTeamIds))
+        ), pageable);
+
+        if (teams.isEmpty()) {
+            throw new NoContentException(ErrorCode.NO_CONTENT);
+        }
+        
+        return teams.map(this::mapToTeamResponse);
     }
 
     @Override

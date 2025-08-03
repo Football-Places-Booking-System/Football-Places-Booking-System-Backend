@@ -3,7 +3,6 @@ package hypercell.final_project.football_places_booking_system.controller;
 import java.util.List;
 import java.util.UUID;
 
-import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +25,7 @@ import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.ResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamCreationRequest;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamResponse;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamService;
 import lombok.RequiredArgsConstructor;
 
@@ -90,6 +90,16 @@ public class TeamController {
 
         User user = (User) userDetails;
         return ResponseEntity.ok(teamService.getTeamsByUser(user.getId(), page, size));
+    }
+
+    @GetMapping("/other-teams")
+    public ResponseEntity<Page<TeamResponse>> getOtherTeams(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) throws AppException {
+
+        User user = (User) userDetails;
+        return ResponseEntity.ok(teamService.getOtherTeams(user.getId(), page, size));
     }
 
     @GetMapping("/isOrganizer/{teamId}")

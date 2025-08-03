@@ -21,4 +21,5 @@ public interface TeamService {
     TeamResponse updateTeam(UUID id, TeamCreationRequest teamCreationRequest) throws AppException;
     ResponseEntity<ResponseDTO> deleteTeam(UUID id) throws AppException;
     Page<TeamResponse> getTeamsByUser(UUID userId, int page, int size) throws AppException;
+    Page<TeamResponse> getOtherTeams(UUID userId, int page, int size) throws AppException;
 }
