@@ -11,15 +11,15 @@ import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
 import hypercell.final_project.football_places_booking_system.exception.AppException;
+import hypercell.final_project.football_places_booking_system.exception.NoContentException;
 import hypercell.final_project.football_places_booking_system.exception.NoDataException;
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
-import hypercell.final_project.football_places_booking_system.exception.NoContentException;
 import hypercell.final_project.football_places_booking_system.model.db.User;
+import hypercell.final_project.football_places_booking_system.model.dto.BooleanResponseDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.PasswordDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.ResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.UserDTO;
-import hypercell.final_project.football_places_booking_system.model.dto.PasswordDTO;
-import hypercell.final_project.football_places_booking_system.model.dto.BooleanResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.UserRole;
 import hypercell.final_project.football_places_booking_system.model.enums.UserStatus;
@@ -71,7 +71,8 @@ public class UserService {
             user.getEmail(),
             null,
             user.getRole(),
-            user.getStatus()
+            user.getStatus(),
+            user.getCreatedAt()
         );
     }
 
@@ -110,7 +111,8 @@ public class UserService {
             user.getEmail(),
             null,
             user.getRole(),
-            user.getStatus()
+            user.getStatus(),
+            user.getCreatedAt()
         ));
     }
 
