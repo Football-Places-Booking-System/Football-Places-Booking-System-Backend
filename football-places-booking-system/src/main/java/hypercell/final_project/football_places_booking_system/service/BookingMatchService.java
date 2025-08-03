@@ -1,9 +1,10 @@
 package hypercell.final_project.football_places_booking_system.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +13,6 @@ import hypercell.final_project.football_places_booking_system.exception.Forbidde
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
-import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.MatchStatus;
@@ -70,6 +70,7 @@ public class BookingMatchService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
 
         boolean isAvailable = bookingMatchRepository.findByPlaceId(place.getId()).stream()
+                .filter(existing -> existing.getStatus() != MatchStatus.CANCELLED)
                 .noneMatch(existing ->
                         existing.getStartTime().isBefore(dto.endTime()) &&
                                 existing.getEndTime().isAfter(dto.startTime())
@@ -102,9 +103,15 @@ public class BookingMatchService {
             throw new ForbiddenActionException(ErrorCode.FORBIDDEN);
         }
 
+        // Policy: Cannot cancel if less than 3 hours before start
+        if (match.getStartTime().isBefore(LocalDateTime.now().plusHours(3))) {
+            throw new ForbiddenActionException(ErrorCode.MATCH_CANNOT_BE_CANCELLED_NOW);
+        }
+
         match.setStatus(MatchStatus.CANCELLED);
         bookingMatchRepository.save(match);
     }
+
 
     public BookingMatch getById(UUID id) throws AppException {
         if (id == null) {
@@ -114,6 +121,33 @@ public class BookingMatchService {
         return bookingMatchRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.BOOKING_MATCH_NOT_FOUND));
     }
+
+    public BookingDetailRespDTO getBookingMatchDetails(UUID bookingId) throws AppException {
+        if (bookingId == null) {
+            throw new ValidationException(ErrorCode.INVALID_BOOKING_MATCH_ID);
+        }
+
+        BookingMatch match = bookingMatchRepository.findById(bookingId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.BOOKING_MATCH_NOT_FOUND));
+
+        return BookingDetailRespDTO.builder()
+                .id(match.getId())
+                .startTime(match.getStartTime())
+                .endTime(match.getEndTime())
+                .status(match.getStatus())
+                .createdAt(match.getCreatedAt())
+
+                .placeId(match.getPlace().getId())
+                .placeName(match.getPlace().getName())
+
+                .teamId(match.getTeam().getId())
+                .teamName(match.getTeam().getName())
+
+                .userId(match.getUser().getId())
+                .userName(match.getUser().getUserName())
+                .build();
+    }
+
 
     public List<BookingMatch> getByUser(UUID userId) throws AppException {
         if (userId == null) {
@@ -159,6 +193,7 @@ public class BookingMatchService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
+        // Get organizer teams
         List<UUID> organizerTeams = teamMemberRepository.findByUserId(userId).stream()
                 .filter(tm -> tm.getRole() == TeamRole.ORGANIZER && tm.getStatus() == TeamStatus.APPROVED)
                 .map(tm -> tm.getTeam().getId())
@@ -168,26 +203,11 @@ public class BookingMatchService {
             return List.of();
         }
 
+        // Fetch matches with their place relation already loaded
+
+        // No manual setting needed, mapper will handle place name
         return bookingMatchRepository.findAll().stream()
                 .filter(match -> organizerTeams.contains(match.getTeam().getId()))
-                .toList();
-    }
-
-    public List<BookingMatch> getMyMatchesAsPlayer(UUID userId) throws AppException {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
-
-        List<UUID> playerTeams = teamMemberRepository.findByUserId(userId).stream()
-                .filter(tm -> tm.getRole() == TeamRole.PLAYER && tm.getStatus() == TeamStatus.APPROVED)
-                .map(tm -> tm.getTeam().getId())
-                .toList();
-
-        if (playerTeams.isEmpty()) {
-            return List.of();
-        }
-
-        return bookingMatchRepository.findAll().stream()
-                .filter(match -> playerTeams.contains(match.getTeam().getId()))
                 .toList();
     }
 

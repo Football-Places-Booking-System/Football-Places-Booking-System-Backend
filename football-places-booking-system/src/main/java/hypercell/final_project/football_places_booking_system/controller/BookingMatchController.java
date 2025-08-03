@@ -6,6 +6,7 @@ import java.util.UUID;
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
@@ -52,6 +53,14 @@ public class BookingMatchController {
         return ResponseEntity.ok(toResponseDTO(match));
     }
 
+    @GetMapping("/details/{id}")
+    public ResponseEntity<BookingDetailRespDTO> getBookingMatchDetails(
+            @PathVariable UUID id
+    ) throws AppException {
+        return ResponseEntity.ok(bookingMatchService.getBookingMatchDetails(id));
+    }
+
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<BookingResponseDTO>> getByUser(@PathVariable UUID userId) throws AppException {
         return ResponseEntity.ok(
@@ -96,19 +105,6 @@ public class BookingMatchController {
         User currentUser = (User) userDetails;
         return ResponseEntity.ok(
                 bookingMatchService.getMyMatchesAsOrganizer(currentUser.getId()).stream()
-                        .map(BookingMapper::toResponseDTO)
-                        .toList()
-        );
-    }
-
-    // NEW: Get matches where the current user is a Player
-    @GetMapping("/my/player")
-    public ResponseEntity<List<BookingResponseDTO>> getMyMatchesAsPlayer(
-            @AuthenticationPrincipal UserDetails userDetails
-    ) throws AppException {
-        User currentUser = (User) userDetails;
-        return ResponseEntity.ok(
-                bookingMatchService.getMyMatchesAsPlayer(currentUser.getId()).stream()
                         .map(BookingMapper::toResponseDTO)
                         .toList()
         );

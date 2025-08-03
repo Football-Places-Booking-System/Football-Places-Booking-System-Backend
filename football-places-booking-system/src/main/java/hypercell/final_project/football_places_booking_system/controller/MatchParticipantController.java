@@ -4,6 +4,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -113,4 +116,29 @@ public class MatchParticipantController {
 
         return ResponseEntity.ok(participants);
     }
+
+    @GetMapping("/user/matches")
+    public ResponseEntity<List<BookingResponseDTO>> getMatchesByUserDetails(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws AppException {
+        User currentUser = (User) userDetails;
+
+        var matches = matchParticipantService.getUserParticipatedMatches(currentUser.getId())
+                .stream()
+                .map(BookingMapper::toResponseDTO)
+                .toList();
+
+        return ResponseEntity.ok(matches);
+    }
+
+    @GetMapping("/user/matches/details")
+    public ResponseEntity<List<BookingDetailRespDTO>> getUserMatchesDetailed(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws AppException {
+        User currentUser = (User) userDetails;
+        var matches = matchParticipantService.getUserParticipatedMatchesDetailed(currentUser.getId());
+        return ResponseEntity.ok(matches);
+    }
+
+
 }
