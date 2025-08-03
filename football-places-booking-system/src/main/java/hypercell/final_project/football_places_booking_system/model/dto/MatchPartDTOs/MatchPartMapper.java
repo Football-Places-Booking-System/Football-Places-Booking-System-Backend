@@ -11,6 +11,7 @@ public class MatchPartMapper {
                 .bookingMatchId(participant.getBookingMatch().getId())
                 .userId(participant.getUser().getId())
                 .userEmail(participant.getUser().getEmail())
+                .username(participant.getUser().getUserName())
                 .build();
     }
 }
