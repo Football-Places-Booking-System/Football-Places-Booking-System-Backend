@@ -16,5 +16,6 @@ public record RequestDTO(
     // String responseMessage,
     UUID senderId,
     UUID receiverId,
-    UUID jokerId
+    UUID jokerId,
+    String senderEmail
 ) {}

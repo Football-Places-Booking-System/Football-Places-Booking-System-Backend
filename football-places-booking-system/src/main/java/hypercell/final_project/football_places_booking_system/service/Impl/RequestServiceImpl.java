@@ -142,7 +142,8 @@ public class RequestServiceImpl implements RequestService  {
                         request.getRequestMessage(),
                         request.getSender().getId(),
                         request.getReceiver().getId(),
-                        request.getJoker_id()
+                        request.getJoker_id(),
+                        request.getSender().getEmail()
                 ))
                 .collect(Collectors.toList());
     }

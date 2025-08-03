@@ -126,13 +126,14 @@ public class TeamMemberController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @GetMapping("/join-request/respond/{teamMemberId}/{organizerId}")  
+    @GetMapping("/join-request/respond/{teamMemberId}")
     public ResponseEntity<TeamMemberResponse> respondToJoinRequest(
             @PathVariable UUID teamMemberId,
-            @PathVariable UUID organizerId,
-            @RequestParam TeamStatus status) throws AppException {
-        return ResponseEntity.ok(
-            teamMemberService.respondToJoinRequest(teamMemberId, status, organizerId));
+            @RequestParam TeamStatus status,
+            @AuthenticationPrincipal UserDetails userDetails) throws AppException {
+        User user = (User) userDetails;
+
+        return ResponseEntity.ok(teamMemberService.respondToJoinRequest(teamMemberId, status, user.getId()));
     }
 
     @GetMapping("/join-requests/{teamId}")
