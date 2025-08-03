@@ -142,6 +142,7 @@
 
 
 	<build>
+		<finalName> football-places-booking-system c</finalName>
 		<plugins>
         <!-- change userName and password to your database -->
 			<!-- <plugin>
