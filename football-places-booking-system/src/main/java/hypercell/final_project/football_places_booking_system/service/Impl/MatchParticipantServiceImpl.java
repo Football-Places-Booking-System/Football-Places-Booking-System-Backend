@@ -4,6 +4,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.model.db.Request;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.UserMatchResponseDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.MatchParticipantService;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
@@ -16,10 +20,7 @@ import hypercell.final_project.football_places_booking_system.exception.NotFound
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
 import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
-import hypercell.final_project.football_places_booking_system.model.db.Request;
 import hypercell.final_project.football_places_booking_system.model.db.User;
-import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
 import hypercell.final_project.football_places_booking_system.model.enums.PlaceType;
@@ -161,23 +162,23 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
         // Find the request by sender (match organizer) and receiver (participant) and type
         UUID senderId = participant.getBookingMatch().getUser().getId(); // The match organizer
         UUID receiverId = participant.getUser().getId(); // The participant
-        
+
         // Find and update the request
         Request existingRequest = requestRepository.findByJokerId(participantId);
 
         try {
-            // Create response message
+            // Create a response message
             String participantName = participant.getUser().getUserName();
             String responseText = status == ParticipantStatus.ACCEPTED ? "accepted" : "declined";
             String responseMessage = String.format("%s has %s the match invitation", participantName, responseText);
-            
+
             requestService.updateRequestStatusWithMessage(existingRequest.getId(), responseStatus, responseMessage);
         } catch (AppException e) {
             // Log the error but don't fail the main operation
             throw new RuntimeException("Failed to update request status: " + e.getMessage(), e);
         }
 
-        // Send response notification email to the match organizer
+        // Send a response notification email to the match organizer
         emailService.sendResponseToMatchParticipantInvitation(participant, status);
 
         return matchParticipantRepository.save(participant);
@@ -197,7 +198,7 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
     }
 
     // Get all matches that a user has participated in
-    public List<BookingMatch> getUserParticipatedMatches(UUID userId) throws AppException {
+    public List<UserMatchResponseDTO> getUserParticipatedMatches(UUID userId) throws AppException {
         if (userId == null) {
             throw new ValidationException(ErrorCode.INVALID_PARTICIPANT_ID);
         }
@@ -206,13 +207,20 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
-        // Fetch all participant records for this user
-        List<MatchParticipant> participations = matchParticipantRepository.findByUserId(userId);
-
         // Map to booking matches
-        return participations.stream()
-                .map(MatchParticipant::getBookingMatch)
-                .distinct()
+        return matchParticipantRepository.findByUserId(userId).stream()
+                .map(mp -> UserMatchResponseDTO.builder()
+                        .matchId(mp.getBookingMatch().getId())
+                        .participantId(mp.getId())   // Participant primary key
+                        .teamId(mp.getBookingMatch().getTeam().getId())
+                        .teamName(mp.getBookingMatch().getTeam().getName())
+                        .placeId(mp.getBookingMatch().getPlace().getId())
+                        .placeName(mp.getBookingMatch().getPlace().getName())
+                        .startTime(mp.getBookingMatch().getStartTime())
+                        .endTime(mp.getBookingMatch().getEndTime())
+                        .bookingStatus(mp.getBookingMatch().getStatus())
+                        .invitationStatus(mp.getStatus())   // INVITED, ACCEPTED, DECLINED
+                        .build())
                 .toList();
     }
 
