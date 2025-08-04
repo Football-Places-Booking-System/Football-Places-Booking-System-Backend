@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import hypercell.final_project.football_places_booking_system.exception.AppException;
@@ -90,18 +89,15 @@ public class TeamMemberController {
     }
 
     // Endpoint to accept or reject an invitation
-    @PatchMapping("/respond/{teamMemberId}")
-    public ResponseEntity<?> respondToInvitation(
+    @GetMapping("/respond/{teamMemberId}")
+    public void respondToInvitation(
             @PathVariable UUID teamMemberId,
             @RequestParam("status") TeamStatus request
     ) throws AppException {
 
         System.out.println("Responding to invitation for team member ID: " + teamMemberId + " with request: " + request);
-
-        TeamMemberInviteResponse response = teamMemberService.respondToInvitation(teamMemberId, request);
-
-        return ResponseEntity.ok(response);
-
+        
+        teamMemberService.respondToInvitation(teamMemberId, request);
     }
 
     // // Endpoint to accept or reject an invitation
@@ -117,7 +113,6 @@ public class TeamMemberController {
     //             .build();
     // }
 
-
     @PostMapping("/join-request/{teamId}")
     public ResponseEntity<TeamMemberResponse> requestToJoinTeam(
             @PathVariable UUID teamId,
@@ -126,8 +121,7 @@ public class TeamMemberController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @PatchMapping("/join-request/respond/{teamMemberId}/{organizerId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @GetMapping("/join-request/respond/{teamMemberId}/{organizerId}")
     public void respondToJoinRequest(
             @PathVariable UUID teamMemberId,
             @PathVariable UUID organizerId,
