@@ -12,7 +12,7 @@ import hypercell.final_project.football_places_booking_system.repository.TeamMem
 import hypercell.final_project.football_places_booking_system.service.Interfaces.AuthService;
 import lombok.RequiredArgsConstructor;
 
-@Service
+@Service("authService")
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 

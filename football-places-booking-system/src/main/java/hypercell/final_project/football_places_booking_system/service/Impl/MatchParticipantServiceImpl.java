@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.MatchParticipantService;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
@@ -23,7 +25,6 @@ import hypercell.final_project.football_places_booking_system.model.enums.Respon
 import hypercell.final_project.football_places_booking_system.repository.MatchParticipantRepository;
 import hypercell.final_project.football_places_booking_system.repository.RequestRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
-import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -33,7 +34,7 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
     private final MatchParticipantRepository matchParticipantRepository;
     private final UserRepository userRepository;
     private final BookingMatchServiceImpl bookingMatchService;
-    private final EmailServiceImpl emailService;
+    private final EmailService emailService;
     private final RequestService requestService;
     private final RequestRepository requestRepository;
 
