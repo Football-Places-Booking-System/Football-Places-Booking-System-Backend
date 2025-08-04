@@ -67,10 +67,10 @@ public class UserController {
         return userService.checkPassword((User) user, password);
     }
 
-    @PostMapping("/check-password")
-    public ResponseEntity<BooleanResponseDTO> checkPassword(@AuthenticationPrincipal UserDetails user, @RequestBody PasswordDTO password) {
-        return userService.checkPassword((User) user, password);
-    }
+//    @PostMapping("/check-password")
+//    public ResponseEntity<BooleanResponseDTO> checkPassword(@AuthenticationPrincipal UserDetails user, @RequestBody PasswordDTO password) {
+//        return userService.checkPassword((User) user, password);
+//    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseDTO> deleteUser(@PathVariable UUID id) throws AppException {
