@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
@@ -14,8 +12,10 @@ import hypercell.final_project.football_places_booking_system.exception.NotFound
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
 import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
+import hypercell.final_project.football_places_booking_system.model.db.Request;
 import hypercell.final_project.football_places_booking_system.model.db.User;
-import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
 import hypercell.final_project.football_places_booking_system.model.enums.PlaceType;
@@ -161,20 +161,19 @@ public class MatchParticipantService {
         UUID receiverId = participant.getUser().getId(); // The participant
         
         // Find and update the request
-        requestRepository.findBySenderIdAndReceiverIdAndRequestType(senderId, receiverId, RequestType.MATCH_INVITATION)
-                .ifPresent(existingRequest -> {
-                    try {
-                        // Create response message
-                        String participantName = participant.getUser().getUserName();
-                        String responseText = status == ParticipantStatus.ACCEPTED ? "accepted" : "declined";
-                        String responseMessage = String.format("%s has %s the match invitation", participantName, responseText);
-                        
-                        requestService.updateRequestStatusWithMessage(existingRequest.getId(), responseStatus, responseMessage);
-                    } catch (AppException e) {
-                        // Log the error but don't fail the main operation
-                        throw new RuntimeException("Failed to update request status: " + e.getMessage(), e);
-                    }
-                });
+        Request existingRequest = requestRepository.findByJokerId(participantId);
+
+        try {
+            // Create response message
+            String participantName = participant.getUser().getUserName();
+            String responseText = status == ParticipantStatus.ACCEPTED ? "accepted" : "declined";
+            String responseMessage = String.format("%s has %s the match invitation", participantName, responseText);
+            
+            requestService.updateRequestStatusWithMessage(existingRequest.getId(), responseStatus, responseMessage);
+        } catch (AppException e) {
+            // Log the error but don't fail the main operation
+            throw new RuntimeException("Failed to update request status: " + e.getMessage(), e);
+        }
 
         // Send response notification email to the match organizer
         emailService.sendResponseToMatchParticipantInvitation(participant, status);

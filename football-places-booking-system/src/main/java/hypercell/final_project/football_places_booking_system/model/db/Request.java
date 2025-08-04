@@ -58,5 +58,5 @@ public class Request {
 
     // used to stoe the id of a TeamMember or MatchParticipant entity related to this request
     @Column(nullable = false, name = "joker_id")
-    private UUID joker_id;
+    private UUID jokerId;
 }

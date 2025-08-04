@@ -1,6 +1,5 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -9,7 +8,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.model.db.User;
@@ -95,18 +104,18 @@ public class TeamMemberController {
 
     }
 
-    // Endpoint to accept or reject an invitation
-    @GetMapping("/respond-mail/{teamMemberId}")
-    public ResponseEntity<Void> respondToInvitationMail(
-            @PathVariable UUID teamMemberId,
-            @RequestParam("status") TeamStatus request) throws AppException {
+    // // Endpoint to accept or reject an invitation
+    // @GetMapping("/respond-mail/{teamMemberId}")
+    // public ResponseEntity<Void> respondToInvitationMail(
+    //         @PathVariable UUID teamMemberId,
+    //         @RequestParam("status") TeamStatus request) throws AppException {
 
 
-        teamMemberService.respondToInvitation(teamMemberId, request);
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create("http://localhost:4200/"))
-                .build();
-    }
+    //     teamMemberService.respondToInvitation(teamMemberId, request);
+    //     return ResponseEntity.status(HttpStatus.FOUND)
+    //             .location(URI.create("http://localhost:4200/"))
+    //             .build();
+    // }
 
 
     @PostMapping("/join-request/{teamId}")
@@ -117,14 +126,13 @@ public class TeamMemberController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @PatchMapping("/join-request/respond/{teamMemberId}")
+    @PatchMapping("/join-request/respond/{teamMemberId}/{organizerId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void respondToJoinRequest(
             @PathVariable UUID teamMemberId,
-            @RequestParam TeamStatus status,
-            @AuthenticationPrincipal UserDetails userDetails) throws AppException {
-        User user = (User) userDetails;
-        teamMemberService.respondToJoinRequest(teamMemberId, status, user.getId());
+            @PathVariable UUID organizerId,
+            @RequestParam TeamStatus status) throws AppException {
+        teamMemberService.respondToJoinRequest(teamMemberId, status, organizerId);
     }
 
     @GetMapping("/join-requests/{teamId}")

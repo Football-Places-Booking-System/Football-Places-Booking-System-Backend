@@ -45,7 +45,7 @@ public class RequestServiceImpl implements RequestService  {
                 .requestType(requestType)
                 .status(ResponseStatus.PENDING)
                 .sendTime(LocalDateTime.now())
-                .joker_id(joker_id)
+                .jokerId(joker_id)
                 .build();
         
         Request savedRequest = requestRepository.save(request);
@@ -71,7 +71,7 @@ public class RequestServiceImpl implements RequestService  {
                 .status(ResponseStatus.PENDING)
                 .sendTime(LocalDateTime.now())
                 .requestMessage(message)
-                .joker_id(joker_id)
+                .jokerId(joker_id)
                 .build();
         
         Request savedRequest = requestRepository.save(request);
@@ -142,7 +142,7 @@ public class RequestServiceImpl implements RequestService  {
                         request.getRequestMessage(),
                         request.getSender().getId(),
                         request.getReceiver().getId(),
-                        request.getJoker_id(),
+                        request.getJokerId(),
                         request.getSender().getEmail()
                 ))
                 .collect(Collectors.toList());
