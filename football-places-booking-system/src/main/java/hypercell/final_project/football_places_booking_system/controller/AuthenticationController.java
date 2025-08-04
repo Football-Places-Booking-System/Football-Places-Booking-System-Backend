@@ -17,8 +17,8 @@ import hypercell.final_project.football_places_booking_system.model.dto.AuthDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.LoginDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.UserDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
-import hypercell.final_project.football_places_booking_system.service.JwtService;
-import hypercell.final_project.football_places_booking_system.service.UserService;
+import hypercell.final_project.football_places_booking_system.service.Impl.JwtServiceImpl;
+import hypercell.final_project.football_places_booking_system.service.Impl.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -26,8 +26,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/auth")
 public class AuthenticationController {
     private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
-    private final UserService userService;
+    private final JwtServiceImpl jwtService;
+    private final UserServiceImpl userService;
 
     @PostMapping("/register")
     public ResponseEntity<AuthDTO> register(@RequestBody UserDTO user) throws AppException {

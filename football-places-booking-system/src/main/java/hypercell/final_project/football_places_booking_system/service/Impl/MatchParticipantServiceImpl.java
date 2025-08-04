@@ -1,9 +1,16 @@
-package hypercell.final_project.football_places_booking_system.service;
+package hypercell.final_project.football_places_booking_system.service.Impl;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+<<<<<<< HEAD:football-places-booking-system/src/main/java/hypercell/final_project/football_places_booking_system/service/MatchParticipantService.java
+=======
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.MatchParticipantService;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
+>>>>>>> mohamed/feauture/service:football-places-booking-system/src/main/java/hypercell/final_project/football_places_booking_system/service/Impl/MatchParticipantServiceImpl.java
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
@@ -24,18 +31,16 @@ import hypercell.final_project.football_places_booking_system.model.enums.Respon
 import hypercell.final_project.football_places_booking_system.repository.MatchParticipantRepository;
 import hypercell.final_project.football_places_booking_system.repository.RequestRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
-import hypercell.final_project.football_places_booking_system.service.Impl.EmailServiceImpl;
-import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class MatchParticipantService {
+public class MatchParticipantServiceImpl implements MatchParticipantService {
 
     private final MatchParticipantRepository matchParticipantRepository;
     private final UserRepository userRepository;
-    private final BookingMatchService bookingMatchService;
-    private final EmailServiceImpl emailService;
+    private final BookingMatchServiceImpl bookingMatchService;
+    private final EmailService emailService;
     private final RequestService requestService;
     private final RequestRepository requestRepository;
 

@@ -3,14 +3,14 @@ package hypercell.final_project.football_places_booking_system.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import hypercell.final_project.football_places_booking_system.service.Impl.EmailServiceImpl;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
 import lombok.RequiredArgsConstructor;
 // Endpoints for testing email functionality.
 
 @RestController
 @RequiredArgsConstructor
 public class EmailController {
-    private final EmailServiceImpl emailService;
+    private final EmailService emailService;
 
     @RequestMapping("api/send-team-invitation-email")
     public String MockSendHtmlTeamRequestEmail() {

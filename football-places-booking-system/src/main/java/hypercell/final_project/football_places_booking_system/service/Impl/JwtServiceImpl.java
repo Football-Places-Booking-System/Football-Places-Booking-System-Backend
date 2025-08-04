@@ -1,7 +1,8 @@
-package hypercell.final_project.football_places_booking_system.service;
+package hypercell.final_project.football_places_booking_system.service.Impl;
 
 import java.util.Date;
 
+import hypercell.final_project.football_places_booking_system.service.Interfaces.JwtService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -12,12 +13,12 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 @Service
-public class JwtService {
+public class JwtServiceImpl implements JwtService {
 
     private static String SECRET_KEY; 
     private static long EXPIRATION;
 
-    public JwtService(
+    public JwtServiceImpl(
             @Value("${app.security.jwt.secret-key}") String secretKey,
             @Value("${app.security.jwt.expiration}") long expiration
     ) {
@@ -45,11 +46,11 @@ public class JwtService {
             .compact();
     }
 
-    private boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) {
         return extractAllClaims(token).getExpiration().before(new Date());
     }
 
-    private Claims extractAllClaims(String token) {
+    public Claims extractAllClaims(String token) {
         return Jwts.parser()
             .setSigningKey(SECRET_KEY)
             .parseClaimsJws(token)

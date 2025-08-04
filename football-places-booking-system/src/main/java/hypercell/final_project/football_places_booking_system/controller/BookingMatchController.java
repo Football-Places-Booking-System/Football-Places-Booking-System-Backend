@@ -10,7 +10,7 @@ import hypercell.final_project.football_places_booking_system.model.dto.BookingD
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
-import hypercell.final_project.football_places_booking_system.service.BookingMatchService;
+import hypercell.final_project.football_places_booking_system.service.Impl.BookingMatchServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +25,7 @@ import static hypercell.final_project.football_places_booking_system.model.dto.B
 @RequiredArgsConstructor
 public class BookingMatchController {
 
-    private final BookingMatchService bookingMatchService;
+    private final BookingMatchServiceImpl bookingMatchService;
 
     @PostMapping
     public ResponseEntity<BookingResponseDTO> create(

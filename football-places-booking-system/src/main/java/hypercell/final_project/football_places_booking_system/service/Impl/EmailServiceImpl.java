@@ -1,6 +1,7 @@
 package hypercell.final_project.football_places_booking_system.service.Impl;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -33,7 +34,7 @@ public class EmailServiceImpl implements EmailService {
     private final UserRepository userRepository;
 
     @Override
-    public void sendInviteToJoinTeam(User invitedBy, User inviteeUser, String email, Team team, UUID teamMemberId) throws AppException {
+    public CompletableFuture<Void> sendInviteToJoinTeam(User invitedBy, User inviteeUser, String inviteToEmail, Team team, UUID teamMemberId) throws AppException {
         try {
             // Get the inviter's name
             String invitedByName = invitedBy.getUserName();
@@ -44,22 +45,28 @@ public class EmailServiceImpl implements EmailService {
             // Get invitee's name
             String toName = inviteeUser.getUserName();
             
-            // Send the email
-            sendHtmlTeamInviteEmail(invitedByName, teamName, teamDescription, email, toName, teamMemberId);
+            // Send the email asynchronously
+            return sendHtmlTeamInviteEmail(invitedByName, teamName, teamDescription, inviteToEmail, toName, teamMemberId);
             
+            // Send the email asynchronously
+            // return sendHtmlTeamInviteEmail(invitedByName, teamName, teamDescription, inviteToEmail, toName, teamMember.getId());
+
+
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e);
-//            throw new RuntimeException(ErrorCode.EMAIL_SEND_FAILURE);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e));
+            return future;
         }
     }
 
-    public void sendHtmlTeamInviteEmail(String invitedByName, String teamName, String teamDescription, String email, String toName, UUID teamMemberId) {
+    @Override
+    public CompletableFuture<Void> sendHtmlTeamInviteEmail(String invitedByName, String teamName, String teamDescription, String inviteToEmail, String toName, UUID teamMemberId) throws AppException {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
             helper.setFrom("football.booking.system@gmail.com");
-            helper.setTo(email);
+            helper.setTo(inviteToEmail);
             helper.setSubject("Invite to Join Team " + teamName);
 
             // Create Thymeleaf context with variables
@@ -77,18 +84,21 @@ public class EmailServiceImpl implements EmailService {
 //            helper.addInline("database.png", new File("E:\\HyperCell\\WorkSpace\\Try_Repos\\javamail\\src\\main\\resources\\static\\RE.png"));
 
             mailSender.send(message);
+            return CompletableFuture.completedFuture(null);
 
 //            return "Email sent successfully!";
         }
         catch (Exception e) {
-            throw new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e));
+            return future;
 //            return e.getMessage();
         }
 
     }
 
     @Override
-    public void sendResponseToTeamMemberInvitation(TeamMember teamMember, TeamStatus request) {
+    public CompletableFuture<Void> sendResponseToTeamMemberInvitation(TeamMember teamMember, TeamStatus response) {
         try {
             // Get team member details
             String teamMemberName = userRepository.findUsernameById(teamMember.getUser().getId());
@@ -106,10 +116,13 @@ public class EmailServiceImpl implements EmailService {
             String organizerEmail = organizer.getEmail();
             
             // Send the response email to the organizer who invited the team member
-            sendHtmlTeamResponseEmail(teamMemberName, teamName, organizerName, organizerEmail, request);
+            sendHtmlTeamResponseEmail(teamMemberName, teamName, organizerName, organizerEmail, response);
+            return CompletableFuture.completedFuture(null);
             
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send team response email: " + e.getMessage(), e);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Failed to send team response email: " + e.getMessage(), e));
+            return future;
         }
     }
 
@@ -146,13 +159,16 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendRequestToJoinTeam(User user, Team team, UUID teamMemberId) throws AppException {
+    public CompletableFuture<Void> sendRequestToJoinTeam(User user, Team team, UUID teamMemberId) throws AppException {
         try {
             String userName = user.getUserName();
             
             sendHtmlTeamRequestEmail(userName, team, teamMemberId);
+            return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send team request email: " + e.getMessage(), e);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Failed to send team request email: " + e.getMessage(), e));
+            return future;
         }
     }
 
@@ -181,20 +197,22 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendResponseToJoinRequest(TeamMember teamMember, TeamStatus response) {
+    public CompletableFuture<Void> sendResponseToJoinRequest(TeamMember teamMember, TeamStatus response) {
         try {
             Team team = teamRepository.findById(teamMember.getTeam().getId())
                     .orElseThrow(() -> new RuntimeException("Team not found"));
             String teamName = team.getName();
 
             String email = teamMember.getUser().getEmail();
-
             String teamMemberName = teamMember.getUser().getUserName();
             
             sendHtmlJoinRequestResponseEmail(teamMemberName, teamName, email, response);
+            return CompletableFuture.completedFuture(null);
             
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send join request response email: " + e.getMessage(), e);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Failed to send join request response email: " + e.getMessage(), e));
+            return future;
         }
     }
     
@@ -228,7 +246,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendInvitationEmail(String email, MatchParticipant matchParticipant) {
+    public CompletableFuture<Void> sendInvitationEmail(String email, MatchParticipant matchParticipant) {
         try {
             // Get match details
             String placeName = matchParticipant.getBookingMatch().getPlace().getName();
@@ -242,11 +260,14 @@ public class EmailServiceImpl implements EmailService {
             // Get match organizer (the user who created the booking match)
             String organizerName = matchParticipant.getBookingMatch().getUser().getUserName();
             
-            // Send the email
+            // Send the email asynchronously
             sendHtmlMatchInvitationEmail(organizerName, placeName, placeImageUrl, matchStartTime, matchEndTime, email, participantName, matchParticipant.getId());
+            return CompletableFuture.completedFuture(null);
             
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send match invitation email: " + e.getMessage(), e);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Failed to send match invitation email: " + e.getMessage(), e));
+            return future;
         }
     }
 
@@ -285,7 +306,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendResponseToMatchParticipantInvitation(MatchParticipant matchParticipant, ParticipantStatus response) {
+    public CompletableFuture<Void> sendResponseToMatchParticipantInvitation(MatchParticipant matchParticipant, ParticipantStatus response) {
         try {
             // Get participant details
             String participantName = matchParticipant.getUser().getUserName();
@@ -301,9 +322,12 @@ public class EmailServiceImpl implements EmailService {
             
             // Send the response email to the organizer who created the match
             sendHtmlMatchResponseEmail(participantName, placeName, matchStartTime, organizerName, organizerEmail, response);
+            return CompletableFuture.completedFuture(null);
             
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send match response email: " + e.getMessage(), e);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Failed to send match response email: " + e.getMessage(), e));
+            return future;
         }
     }
 

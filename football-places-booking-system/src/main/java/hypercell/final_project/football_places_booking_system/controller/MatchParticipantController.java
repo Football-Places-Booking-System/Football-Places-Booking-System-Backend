@@ -27,9 +27,9 @@ import hypercell.final_project.football_places_booking_system.model.dto.MatchPar
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
-import hypercell.final_project.football_places_booking_system.service.BookingMatchService;
+import hypercell.final_project.football_places_booking_system.service.Impl.BookingMatchServiceImpl;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
-import hypercell.final_project.football_places_booking_system.service.MatchParticipantService;
+import hypercell.final_project.football_places_booking_system.service.Impl.MatchParticipantServiceImpl;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -37,9 +37,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MatchParticipantController {
 
-    private final MatchParticipantService matchParticipantService;
+    private final MatchParticipantServiceImpl matchParticipantService;
     private final TeamMemberService teamMemberService;
-    private final BookingMatchService bookingMatchService;
+    private final BookingMatchServiceImpl bookingMatchService;
 
     /**
      * Invite a user to participate in a match.
