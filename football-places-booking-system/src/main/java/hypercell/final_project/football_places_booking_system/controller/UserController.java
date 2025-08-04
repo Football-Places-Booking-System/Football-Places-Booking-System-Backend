@@ -20,7 +20,7 @@ import hypercell.final_project.football_places_booking_system.model.dto.Response
 import hypercell.final_project.football_places_booking_system.model.dto.UserDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.UserRole;
 import hypercell.final_project.football_places_booking_system.model.enums.UserStatus;
-import hypercell.final_project.football_places_booking_system.service.UserService;
+import hypercell.final_project.football_places_booking_system.service.Impl.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 
 
@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-    private final UserService userService;
+    private final UserServiceImpl userService;
 
     @GetMapping("/{id}")
     public UserDTO getUserById(@PathVariable UUID id) throws AppException {

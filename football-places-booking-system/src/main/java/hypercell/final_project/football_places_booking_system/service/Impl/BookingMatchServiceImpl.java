@@ -1,8 +1,7 @@
-package hypercell.final_project.football_places_booking_system.service;
+package hypercell.final_project.football_places_booking_system.service.Impl;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 import org.springframework.stereotype.Service;
@@ -12,7 +11,6 @@ import hypercell.final_project.football_places_booking_system.exception.Forbidde
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
-import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.MatchStatus;
@@ -23,13 +21,14 @@ import hypercell.final_project.football_places_booking_system.repository.TeamMem
 import hypercell.final_project.football_places_booking_system.repository.TeamRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.BookingMatchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class BookingMatchService {
+public class BookingMatchServiceImpl implements BookingMatchService {
 
     private final BookingMatchRepository bookingMatchRepository;
     private final UserRepository userRepository;

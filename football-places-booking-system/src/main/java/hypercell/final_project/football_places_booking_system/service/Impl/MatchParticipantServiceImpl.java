@@ -1,10 +1,11 @@
-package hypercell.final_project.football_places_booking_system.service;
+package hypercell.final_project.football_places_booking_system.service.Impl;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.MatchParticipantService;
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
@@ -14,7 +15,6 @@ import hypercell.final_project.football_places_booking_system.exception.Validati
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
 import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
 import hypercell.final_project.football_places_booking_system.model.db.User;
-import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
 import hypercell.final_project.football_places_booking_system.model.enums.PlaceType;
@@ -23,17 +23,16 @@ import hypercell.final_project.football_places_booking_system.model.enums.Respon
 import hypercell.final_project.football_places_booking_system.repository.MatchParticipantRepository;
 import hypercell.final_project.football_places_booking_system.repository.RequestRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
-import hypercell.final_project.football_places_booking_system.service.Impl.EmailServiceImpl;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class MatchParticipantService {
+public class MatchParticipantServiceImpl implements MatchParticipantService {
 
     private final MatchParticipantRepository matchParticipantRepository;
     private final UserRepository userRepository;
-    private final BookingMatchService bookingMatchService;
+    private final BookingMatchServiceImpl bookingMatchService;
     private final EmailServiceImpl emailService;
     private final RequestService requestService;
     private final RequestRepository requestRepository;
