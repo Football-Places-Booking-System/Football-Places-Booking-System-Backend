@@ -24,6 +24,8 @@ public interface RequestRepository extends JpaRepository<Request, UUID> {
     List<Request> findByRequestType(RequestType requestType);
     
     List<Request> findByStatus(ResponseStatus status);
+
+    Request findByJokerId(UUID jokerId);
     
     @Query("SELECT r FROM Request r WHERE r.sender.id = :senderId AND r.receiver.id = :receiverId AND r.requestType = :requestType")
     Optional<Request> findBySenderIdAndReceiverIdAndRequestType(

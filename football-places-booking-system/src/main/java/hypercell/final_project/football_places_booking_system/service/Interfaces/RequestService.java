@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.model.db.Request;
+import hypercell.final_project.football_places_booking_system.model.dto.RequestDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.RequestType;
 import hypercell.final_project.football_places_booking_system.model.enums.ResponseStatus;
 
@@ -22,7 +23,7 @@ public interface RequestService {
     
     List<Request> getRequestsBySender(UUID senderId) throws AppException;
     
-    List<Request> getRequestsByReceiver(UUID receiverId) throws AppException;
+    List<RequestDTO> getRequestsByReceiver(UUID receiverId) throws AppException;
     
     List<Request> getPendingRequestsByReceiver(UUID receiverId) throws AppException;
     

@@ -40,10 +40,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/match-participants/invitation-mail/**").permitAll()
                 .anyRequest().authenticated()
             )
-//            .exceptionHandling(eh -> eh
-//                .authenticationEntryPoint(customAuthenticationEntryPoint)
-//                .accessDeniedHandler(customAccessDeniedHandler)
-//            )
+            .exceptionHandling(eh -> eh
+                .authenticationEntryPoint(customAuthenticationEntryPoint)
+                .accessDeniedHandler(customAccessDeniedHandler)
+            )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
             .build();
     }

@@ -9,12 +9,10 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import hypercell.final_project.football_places_booking_system.exception.AppException;
-import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
 import hypercell.final_project.football_places_booking_system.model.db.Team;
 import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.db.User;
-import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
 import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
@@ -35,7 +33,7 @@ public class EmailServiceImpl implements EmailService {
     private final UserRepository userRepository;
 
     @Override
-    public void sendInviteToJoinTeam(User invitedBy, User inviteeUser, String email, Team team) throws AppException {
+    public void sendInviteToJoinTeam(User invitedBy, User inviteeUser, String email, Team team, UUID teamMemberId) throws AppException {
         try {
             // Get the inviter's name
             String invitedByName = invitedBy.getUserName();
@@ -46,12 +44,8 @@ public class EmailServiceImpl implements EmailService {
             // Get invitee's name
             String toName = inviteeUser.getUserName();
             
-            // Get a team member record
-            TeamMember teamMember = teamMemberRepository.findByTeamIdAndUserId(team.getId(), inviteeUser.getId())
-                    .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
-            
             // Send the email
-            sendHtmlTeamInviteEmail(invitedByName, teamName, teamDescription, email, toName, teamMember.getId());
+            sendHtmlTeamInviteEmail(invitedByName, teamName, teamDescription, email, toName, teamMemberId);
             
         } catch (Exception e) {
             throw new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e);
@@ -74,7 +68,6 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("teamName", teamName);
             context.setVariable("teamDescription", teamDescription);
             context.setVariable("toName", toName);
-            context.setVariable("teamMemberId", teamMemberId);
             context.setVariable("invitationApi", "http://localhost:8080/api/team-members/invitation/" + teamMemberId);
 
             // Process the template
@@ -156,8 +149,6 @@ public class EmailServiceImpl implements EmailService {
     public void sendRequestToJoinTeam(User user, Team team, UUID teamMemberId) throws AppException {
         try {
             String userName = user.getUserName();
-            String teamName = team.getName();
-            String teamDescription = team.getDescription();
             
             sendHtmlTeamRequestEmail(userName, team, teamMemberId);
         } catch (Exception e) {
@@ -178,7 +169,6 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("name", name);
             context.setVariable("teamName", team.getName());
             context.setVariable("teamDescription", team.getDescription());
-            context.setVariable("teamMemberId", teamMemberId);
             context.setVariable("api", "http://localhost:8080/api/team-members/join-request/respond/" + teamMemberId + "/" + team.getCreator().getId());
 
             String htmlContent = templateEngine.process("team-request-email-content", context);
@@ -281,7 +271,7 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("matchEndTime", matchEndTime);
             context.setVariable("participantName", participantName);
             context.setVariable("participantId", participantId);
-            context.setVariable("invitationApi", "http://localhost:8080/api/match-participants/" + participantId +"/respond-mail");
+            context.setVariable("invitationApi", "http://localhost:8080/api/match-participants/respond/" + participantId);
 
             // Process the template
             String htmlContent = templateEngine.process("match-invitation-email-content", context);

@@ -1,5 +1,6 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -24,6 +25,7 @@ import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.ResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamCreationRequest;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamResponse;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamService;
 import lombok.RequiredArgsConstructor;
 
@@ -33,7 +35,9 @@ import lombok.RequiredArgsConstructor;
 public class TeamController {
 
     private final TeamService teamService;
-    
+    private final TeamMemberService teamMemberService;
+
+
     @PostMapping
     public ResponseEntity<TeamResponse> createTeam(
             @RequestBody TeamCreationRequest request,
@@ -47,7 +51,7 @@ public class TeamController {
         return teamService.getTeamById(id);
     }
 
-    @GetMapping("/all")
+    @GetMapping("/all-filtered")
     public Page<TeamResponse> filterTeams(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String description,
@@ -56,6 +60,10 @@ public class TeamController {
     ) throws AppException {
         Pageable pageable = PageRequest.of(page, size);
         return teamService.filterTeams(name, description, pageable);
+    }
+    @GetMapping("/all")
+    public List<TeamResponse> getAllTeams() throws AppException {
+        return teamService.getAllTeams();
     }
     
     @PreAuthorize("@authService.hasTeamRole(#id, 'ORGANIZER')")
@@ -83,4 +91,25 @@ public class TeamController {
         User user = (User) userDetails;
         return ResponseEntity.ok(teamService.getTeamsByUser(user.getId(), page, size));
     }
+
+    @GetMapping("/other-teams")
+    public ResponseEntity<Page<TeamResponse>> getOtherTeams(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) throws AppException {
+
+        User user = (User) userDetails;
+        return ResponseEntity.ok(teamService.getOtherTeams(user.getId(), page, size));
+    }
+
+    @GetMapping("/isOrganizer/{teamId}")
+    public ResponseEntity<Boolean> getTeamMember(
+            @PathVariable UUID teamId,
+            @AuthenticationPrincipal UserDetails userDetails) throws AppException {
+        User user = (User) userDetails;
+
+        boolean isOrganizer = teamMemberService.isOrganizer(user.getId(), teamId);
+        return ResponseEntity.ok(isOrganizer);
+    }
+
 }

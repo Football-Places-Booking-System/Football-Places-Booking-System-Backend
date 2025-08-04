@@ -2,6 +2,7 @@ package hypercell.final_project.football_places_booking_system.service.Impl;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -156,6 +157,37 @@ public class TeamServiceImpl implements TeamService {
                 .map(teamMember -> mapToTeamResponse(teamMember.getTeam()));
     }
 
+    @Override
+    public Page<TeamResponse> getOtherTeams(UUID userId, int page, int size) throws AppException {
+        Pageable pageable = PageRequest.of(page, size);
+
+        List<UUID> userTeamIds = teamMemberRepository.findByUserIdAndStatus(userId, TeamStatus.APPROVED)
+                .stream()
+                .map(teamMember -> teamMember.getTeam().getId())
+                .collect(Collectors.toList());
+        
+        Page<Team> teams = teamRepository.findAll(Specification.where((root, query, cb) ->
+                cb.not(root.get("id").in(userTeamIds))
+        ), pageable);
+
+        if (teams.isEmpty()) {
+            throw new NoContentException(ErrorCode.NO_CONTENT);
+        }
+        
+        return teams.map(this::mapToTeamResponse);
+    }
+
+    @Override
+    public List<TeamResponse> getAllTeams() throws AppException {
+        List<Team> teams = teamRepository.findAll();
+        if (teams.isEmpty()) {
+            throw new NoContentException(ErrorCode.NO_CONTENT);
+        }
+        return teams.stream()
+                .map(this::mapToTeamResponse)
+                .collect(Collectors.toList());
+    }
+
     private TeamMemberResponse mapToTeamMemberResponse(TeamMember teamMember) {
         return new TeamMemberResponse(
                 teamMember.getId(),
@@ -181,6 +213,7 @@ public class TeamServiceImpl implements TeamService {
                 .description(team.getDescription())
                 .createdBy(team.getCreator().getId())
                 .createdAt(team.getCreatedAt())
+                .createdByUsername(team.getCreator().getUserName())
                 .members(mapTeamMembers(team.getTeamMembers()))
                 .build();
     }

@@ -26,6 +26,7 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, UUID> {
     boolean existsByTeamAndUser(Team team, User user);
     List<TeamMember> getTeamMemberByTeam(Team team);
     Page<TeamMember> findByUserIdAndStatus(UUID userId, TeamStatus status, Pageable pageable);
+    List<TeamMember> findByUserIdAndStatus(UUID id, TeamStatus status);
     List<TeamMember> findByTeamAndStatus(Team team, TeamStatus status);
     List<TeamMember> findByUserId(UUID userId);
     
