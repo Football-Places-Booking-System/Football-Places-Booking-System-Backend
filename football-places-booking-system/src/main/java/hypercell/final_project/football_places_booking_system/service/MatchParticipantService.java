@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.model.db.Request;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.UserMatchResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
@@ -159,24 +160,23 @@ public class MatchParticipantService {
         // Find the request by sender (match organizer) and receiver (participant) and type
         UUID senderId = participant.getBookingMatch().getUser().getId(); // The match organizer
         UUID receiverId = participant.getUser().getId(); // The participant
-        
-        // Find and update the request
-        requestRepository.findBySenderIdAndReceiverIdAndRequestType(senderId, receiverId, RequestType.MATCH_INVITATION)
-                .ifPresent(existingRequest -> {
-                    try {
-                        // Create a response message
-                        String participantName = participant.getUser().getUserName();
-                        String responseText = status == ParticipantStatus.ACCEPTED ? "accepted" : "declined";
-                        String responseMessage = String.format("%s has %s the match invitation", participantName, responseText);
-                        
-                        requestService.updateRequestStatusWithMessage(existingRequest.getId(), responseStatus, responseMessage);
-                    } catch (AppException e) {
-                        // Log the error but don't fail the main operation
-                        throw new RuntimeException("Failed to update request status: " + e.getMessage(), e);
-                    }
-                });
 
-        // Send response notification email to the match organizer
+        // Find and update the request
+        Request existingRequest = requestRepository.findByJokerId(participantId);
+
+        try {
+            // Create a response message
+            String participantName = participant.getUser().getUserName();
+            String responseText = status == ParticipantStatus.ACCEPTED ? "accepted" : "declined";
+            String responseMessage = String.format("%s has %s the match invitation", participantName, responseText);
+
+            requestService.updateRequestStatusWithMessage(existingRequest.getId(), responseStatus, responseMessage);
+        } catch (AppException e) {
+            // Log the error but don't fail the main operation
+            throw new RuntimeException("Failed to update request status: " + e.getMessage(), e);
+        }
+
+        // Send a response notification email to the match organizer
         emailService.sendResponseToMatchParticipantInvitation(participant, status);
 
         return matchParticipantRepository.save(participant);
@@ -204,9 +204,6 @@ public class MatchParticipantService {
         // Validate user existence
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
-
-        // Fetch all participant records for this user
-        List<MatchParticipant> participations = matchParticipantRepository.findByUserId(userId);
 
         // Map to booking matches
         return matchParticipantRepository.findByUserId(userId).stream()

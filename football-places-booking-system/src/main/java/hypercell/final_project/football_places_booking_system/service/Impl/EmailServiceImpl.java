@@ -37,16 +37,16 @@ public class EmailServiceImpl implements EmailService {
         try {
             // Get the inviter's name
             String invitedByName = invitedBy.getUserName();
-                    
+
             String teamName = team.getName();
             String teamDescription = team.getDescription();
-            
+
             // Get invitee's name
             String toName = inviteeUser.getUserName();
-            
+
             // Send the email
             sendHtmlTeamInviteEmail(invitedByName, teamName, teamDescription, email, toName, teamMemberId);
-            
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e);
 //            throw new RuntimeException(ErrorCode.EMAIL_SEND_FAILURE);
@@ -92,22 +92,22 @@ public class EmailServiceImpl implements EmailService {
         try {
             // Get team member details
             String teamMemberName = userRepository.findUsernameById(teamMember.getUser().getId());
-            
+
             // Get team details
             Team team = teamRepository.findById(teamMember.getTeam().getId())
                     .orElseThrow(() -> new RuntimeException("Team not found"));
             String teamName = team.getName();
-            
+
             // Get organizer details (assuming organizer is the one who invited the team member)
             User organizer = userRepository.findById(teamMember.getInvitedBy().getId())
                     .orElseThrow(() -> new RuntimeException("Team organizer not found"));
-            
+
             String organizerName = organizer.getUserName();
             String organizerEmail = organizer.getEmail();
-            
+
             // Send the response email to the organizer who invited the team member
             sendHtmlTeamResponseEmail(teamMemberName, teamName, organizerName, organizerEmail, request);
-            
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to send team response email: " + e.getMessage(), e);
         }
@@ -120,7 +120,7 @@ public class EmailServiceImpl implements EmailService {
 
             helper.setFrom("football.booking.system@gmail.com");
             helper.setTo(organizerEmail);
-            
+
             String subject = "Team Invitation " + (responseStatus == TeamStatus.APPROVED ? "Accepted" : "Rejected") + " - " + teamName;
             helper.setSubject(subject);
 
@@ -149,7 +149,7 @@ public class EmailServiceImpl implements EmailService {
     public void sendRequestToJoinTeam(User user, Team team, UUID teamMemberId) throws AppException {
         try {
             String userName = user.getUserName();
-            
+
             sendHtmlTeamRequestEmail(userName, team, teamMemberId);
         } catch (Exception e) {
             throw new RuntimeException("Failed to send team request email: " + e.getMessage(), e);
@@ -190,14 +190,14 @@ public class EmailServiceImpl implements EmailService {
             String email = teamMember.getUser().getEmail();
 
             String teamMemberName = teamMember.getUser().getUserName();
-            
+
             sendHtmlJoinRequestResponseEmail(teamMemberName, teamName, email, response);
-            
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to send join request response email: " + e.getMessage(), e);
         }
     }
-    
+
     private void sendHtmlJoinRequestResponseEmail(String teamMemberName, String teamName, String email, TeamStatus responseStatus) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -205,7 +205,7 @@ public class EmailServiceImpl implements EmailService {
 
             helper.setFrom("football.booking.system@gmail.com");
             helper.setTo(email);
-            
+
             String subject = "Team Join Request " + (responseStatus == TeamStatus.APPROVED ? "Accepted" : "Rejected") + " - " + teamName;
             helper.setSubject(subject);
 
@@ -235,16 +235,16 @@ public class EmailServiceImpl implements EmailService {
             String placeImageUrl = matchParticipant.getBookingMatch().getPlace().getImageUrl();
             String matchStartTime = matchParticipant.getBookingMatch().getStartTime().toString();
             String matchEndTime = matchParticipant.getBookingMatch().getEndTime().toString();
-            
+
             // Get participant's name
             String participantName = matchParticipant.getUser().getUserName();
-            
+
             // Get match organizer (the user who created the booking match)
             String organizerName = matchParticipant.getBookingMatch().getUser().getUserName();
-            
+
             // Send the email
             sendHtmlMatchInvitationEmail(organizerName, placeName, placeImageUrl, matchStartTime, matchEndTime, email, participantName, matchParticipant.getId());
-            
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to send match invitation email: " + e.getMessage(), e);
         }
@@ -289,19 +289,19 @@ public class EmailServiceImpl implements EmailService {
         try {
             // Get participant details
             String participantName = matchParticipant.getUser().getUserName();
-            
+
             // Get match details
             String placeName = matchParticipant.getBookingMatch().getPlace().getName();
             String matchStartTime = matchParticipant.getBookingMatch().getStartTime().toString();
-            
+
             // Get organizer details (the one who created the booking match)
             User organizer = matchParticipant.getBookingMatch().getUser();
             String organizerName = organizer.getUserName();
             String organizerEmail = organizer.getEmail();
-            
+
             // Send the response email to the organizer who created the match
             sendHtmlMatchResponseEmail(participantName, placeName, matchStartTime, organizerName, organizerEmail, response);
-            
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to send match response email: " + e.getMessage(), e);
         }
@@ -314,7 +314,7 @@ public class EmailServiceImpl implements EmailService {
 
             helper.setFrom("football.booking.system@gmail.com");
             helper.setTo(organizerEmail);
-            
+
             String subject = "Match Invitation " + (responseStatus == ParticipantStatus.ACCEPTED ? "Accepted" : "Declined") + " - " + placeName;
             helper.setSubject(subject);
 
