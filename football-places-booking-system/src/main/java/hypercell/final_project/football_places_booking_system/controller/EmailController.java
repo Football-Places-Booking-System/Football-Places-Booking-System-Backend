@@ -1,7 +1,5 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
-import java.util.UUID;
-
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,15 +14,16 @@ public class EmailController {
 
     @RequestMapping("api/send-team-invitation-email")
     public String MockSendHtmlTeamRequestEmail() {
-        try {
-            UUID teamMemberId = UUID.fromString("9dd246b0-861e-405d-a2fd-543b30b8154d");
-            emailService.sendHtmlTeamInviteEmail("Omar Organizer", "HyperCell", "A team for football enthusiasts",
-                    "omar.saad@ieeecusb.org", "Omar Saad", teamMemberId);
-            return "Successfully sent HTML email to join team.";
+        // try {
+        //     UUID teamMemberId = UUID.fromString("9dd246b0-861e-405d-a2fd-543b30b8154d");
+        //     emailService.sendHtmlTeamInviteEmail("Omar Organizer", "HyperCell", "A team for football enthusiasts",
+        //             "omar.saad@ieeecusb.org", "Omar Saad", teamMemberId);
+        //     return "Successfully sent HTML email to join team.";
 
-        } catch (Exception e) {
-            return "Failed to send email: " + e.getMessage();
-        }
+        // } catch (Exception e) {
+        //     return "Failed to send email: " + e.getMessage();
+        // }
+        return "";
     }
 
 

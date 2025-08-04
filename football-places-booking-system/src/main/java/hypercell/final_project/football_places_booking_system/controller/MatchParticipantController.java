@@ -1,21 +1,30 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.exception.ForbiddenActionException;
 import hypercell.final_project.football_places_booking_system.model.db.User;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartMapper;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartResponseDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
 import hypercell.final_project.football_places_booking_system.service.Impl.BookingMatchServiceImpl;
@@ -71,19 +80,19 @@ public class MatchParticipantController {
         return ResponseEntity.ok(MatchPartMapper.toResponseDTO(participant));
     }
 
-    /**
-     * Respond to invitation (Accept or Decline).
-     */
-    @GetMapping("/respond-mail/{id}")
-    public ResponseEntity<Void> respondMail(
-            @PathVariable UUID id,
-            @RequestParam ParticipantStatus status
-    ) throws AppException {
-        matchParticipantService.respondToInvitation(id, status);
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create("http://localhost:4200/"))
-                .build();
-    }
+//     /**
+//      * Respond to invitation (Accept or Decline).
+//      */
+//     @GetMapping("/respond-mail/{id}")
+//     public ResponseEntity<Void> respondMail(
+//             @PathVariable UUID id,
+//             @RequestParam ParticipantStatus status
+//     ) throws AppException {
+//         matchParticipantService.respondToInvitation(id, status);
+//         return ResponseEntity.status(HttpStatus.FOUND)
+//                 .location(URI.create("http://localhost:4200/"))
+//                 .build();
+//     }
 
 
     /**
@@ -112,4 +121,29 @@ public class MatchParticipantController {
 
         return ResponseEntity.ok(participants);
     }
+
+    @GetMapping("/user/matches")
+    public ResponseEntity<List<BookingResponseDTO>> getMatchesByUserDetails(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws AppException {
+        User currentUser = (User) userDetails;
+
+        var matches = matchParticipantService.getUserParticipatedMatches(currentUser.getId())
+                .stream()
+                .map(BookingMapper::toResponseDTO)
+                .toList();
+
+        return ResponseEntity.ok(matches);
+    }
+
+    @GetMapping("/user/matches/details")
+    public ResponseEntity<List<BookingDetailRespDTO>> getUserMatchesDetailed(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws AppException {
+        User currentUser = (User) userDetails;
+        var matches = matchParticipantService.getUserParticipatedMatchesDetailed(currentUser.getId());
+        return ResponseEntity.ok(matches);
+    }
+
+
 }

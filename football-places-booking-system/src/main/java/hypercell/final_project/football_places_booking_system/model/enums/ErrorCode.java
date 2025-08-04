@@ -47,6 +47,7 @@ public enum ErrorCode {
     BOOKING_MATCH_NOT_FOUND(604, "Booking match not found"),
     TIME_SLOT_UNAVAILABLE(605, "The selected time slot is already booked for this place"),
     UNAUTHORIZED_BOOKING_ACTION(606, "Only team organizers can perform this action"),
+    MATCH_CANNOT_BE_CANCELLED_NOW(607, "Match Can not be cancelled now"),
 
     // ===== Match Participant Errors =====
     INVALID_PARTICIPANT_ID (700, "Participant ID is either empty or null"),

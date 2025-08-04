@@ -12,11 +12,13 @@ import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
 import hypercell.final_project.football_places_booking_system.exception.AppException;
+import hypercell.final_project.football_places_booking_system.exception.NoContentException;
 import hypercell.final_project.football_places_booking_system.exception.NoDataException;
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
-import hypercell.final_project.football_places_booking_system.exception.NoContentException;
 import hypercell.final_project.football_places_booking_system.model.db.User;
+import hypercell.final_project.football_places_booking_system.model.dto.BooleanResponseDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.PasswordDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.ResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.UserDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
@@ -70,7 +72,8 @@ public class UserServiceImpl implements UserService {
             user.getEmail(),
             null,
             user.getRole(),
-            user.getStatus()
+            user.getStatus(),
+            user.getCreatedAt()
         );
     }
 
@@ -109,7 +112,8 @@ public class UserServiceImpl implements UserService {
             user.getEmail(),
             null,
             user.getRole(),
-            user.getStatus()
+            user.getStatus(),
+            user.getCreatedAt()
         ));
     }
 
@@ -142,6 +146,11 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
         return ResponseEntity.ok(new ResponseDTO(id, "User updated successfully"));
+    }
+
+    public ResponseEntity<BooleanResponseDTO> checkPassword(User user, PasswordDTO password) {
+        boolean isMatch = passwordEncoder.matches(password.password(), user.getPassword());
+        return ResponseEntity.ok(new BooleanResponseDTO(isMatch));
     }
 
     public ResponseEntity<ResponseDTO> deleteUser(UUID id) throws AppException {

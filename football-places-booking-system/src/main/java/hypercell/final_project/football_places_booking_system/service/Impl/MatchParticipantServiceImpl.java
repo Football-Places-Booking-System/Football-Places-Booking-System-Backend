@@ -16,7 +16,10 @@ import hypercell.final_project.football_places_booking_system.exception.NotFound
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
 import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
+import hypercell.final_project.football_places_booking_system.model.db.Request;
 import hypercell.final_project.football_places_booking_system.model.db.User;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
 import hypercell.final_project.football_places_booking_system.model.enums.PlaceType;
@@ -160,20 +163,19 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
         UUID receiverId = participant.getUser().getId(); // The participant
         
         // Find and update the request
-        requestRepository.findBySenderIdAndReceiverIdAndRequestType(senderId, receiverId, RequestType.MATCH_INVITATION)
-                .ifPresent(existingRequest -> {
-                    try {
-                        // Create response message
-                        String participantName = participant.getUser().getUserName();
-                        String responseText = status == ParticipantStatus.ACCEPTED ? "accepted" : "declined";
-                        String responseMessage = String.format("%s has %s the match invitation", participantName, responseText);
-                        
-                        requestService.updateRequestStatusWithMessage(existingRequest.getId(), responseStatus, responseMessage);
-                    } catch (AppException e) {
-                        // Log the error but don't fail the main operation
-                        throw new RuntimeException("Failed to update request status: " + e.getMessage(), e);
-                    }
-                });
+        Request existingRequest = requestRepository.findByJokerId(participantId);
+
+        try {
+            // Create response message
+            String participantName = participant.getUser().getUserName();
+            String responseText = status == ParticipantStatus.ACCEPTED ? "accepted" : "declined";
+            String responseMessage = String.format("%s has %s the match invitation", participantName, responseText);
+            
+            requestService.updateRequestStatusWithMessage(existingRequest.getId(), responseStatus, responseMessage);
+        } catch (AppException e) {
+            // Log the error but don't fail the main operation
+            throw new RuntimeException("Failed to update request status: " + e.getMessage(), e);
+        }
 
         // Send response notification email to the match organizer
         emailService.sendResponseToMatchParticipantInvitation(participant, status);
@@ -193,4 +195,62 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
         
         return matchParticipantRepository.findByBookingMatchId(matchId);
     }
+
+    // Get all matches that a user has participated in
+    public List<BookingMatch> getUserParticipatedMatches(UUID userId) throws AppException {
+        if (userId == null) {
+            throw new ValidationException(ErrorCode.INVALID_PARTICIPANT_ID);
+        }
+
+        // Validate user existence
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+
+        // Fetch all participant records for this user
+        List<MatchParticipant> participations = matchParticipantRepository.findByUserId(userId);
+
+        // Map to booking matches
+        return participations.stream()
+                .map(MatchParticipant::getBookingMatch)
+                .distinct()
+                .toList();
+    }
+
+    public List<BookingDetailRespDTO> getUserParticipatedMatchesDetailed(UUID userId) throws AppException {
+        if (userId == null) {
+            throw new ValidationException(ErrorCode.INVALID_PARTICIPANT_ID);
+        }
+
+        // Validate user
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+
+        // Fetch all participant entries for this user
+        List<MatchParticipant> participations = matchParticipantRepository.findByUserId(userId);
+
+        // Map to detailed response DTO
+        return participations.stream()
+                .map(mp -> {
+                    BookingMatch match = mp.getBookingMatch();
+                    return BookingDetailRespDTO.builder()
+                            .id(match.getId())
+                            .startTime(match.getStartTime())
+                            .endTime(match.getEndTime())
+                            .status(match.getStatus())
+                            .createdAt(match.getCreatedAt())
+
+                            .placeId(match.getPlace().getId())
+                            .placeName(match.getPlace().getName())
+
+                            .teamId(match.getTeam().getId())
+                            .teamName(match.getTeam().getName())
+
+                            .userId(match.getUser().getId())
+                            .userName(match.getUser().getUserName())
+                            .build();
+                })
+                .distinct()
+                .toList();
+    }
+
 }

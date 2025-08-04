@@ -11,5 +11,6 @@ public record MatchPartResponseDTO(
         ParticipantStatus status,
         UUID bookingMatchId,
         UUID userId,
-        String userEmail
+        String userEmail,
+        String username
 ) {}

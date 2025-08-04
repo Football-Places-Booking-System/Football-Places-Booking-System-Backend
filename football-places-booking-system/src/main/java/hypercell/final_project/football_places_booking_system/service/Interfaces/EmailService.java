@@ -16,7 +16,7 @@ import hypercell.final_project.football_places_booking_system.model.enums.TeamSt
 public interface EmailService {
 
     @Async("emailTaskExecutor")
-    CompletableFuture<Void> sendInviteToJoinTeam(User invitedBy, User inviteeUser, String inviteToEmail, Team team) throws AppException;
+    CompletableFuture<Void> sendInviteToJoinTeam(User invitedBy, User inviteeUser, String inviteToEmail, Team team, UUID teamMemberId) throws AppException;
 
     @Async("emailTaskExecutor")
     CompletableFuture<Void> sendResponseToTeamMemberInvitation(TeamMember teamMember, TeamStatus response);

@@ -15,6 +15,6 @@ public interface BookingMatchService {
     public List<BookingMatch> getByTeam(UUID teamId) throws AppException;
     public List<BookingMatch> getByPlace(UUID placeId) throws AppException;
     public List<BookingMatch> getAll();
-    public List<BookingMatch> getMyMatchesAsPlayer(UUID userId) throws AppException;
+//    public List<BookingMatch> getMyMatchesAsPlayer(UUID userId) throws AppException;
     public List<BookingMatch> getMyMatchesAsOrganizer(UUID userId) throws AppException;
 }

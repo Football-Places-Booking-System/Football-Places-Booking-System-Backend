@@ -174,7 +174,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         
         // 8. Send the invitation email
         log.info("Sending Team invitation email to: {}", email);
-        emailService.sendInviteToJoinTeam(inviterUser, user, email, team);
+        emailService.sendInviteToJoinTeam(inviterUser, user, email, team, teamMemberResponse.id());
 
         log.info("Successfully invited user {} to team {}", user.getId(), teamId);
         return teamMemberResponse;
@@ -214,20 +214,19 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 teamMember.getUser().getUserName());
         
         // Find and update the request with response message
-        requestRepository.findBySenderIdAndReceiverIdAndRequestType(inviterId, receiverId, RequestType.JOIN_TEAM_INVITATION)
-                .ifPresent(existingRequest -> {
-                    try {
-                        requestService.updateRequestStatusWithMessage(existingRequest.getId(), responseStatus, responseMessage);
-                    } catch (AppException e) {
-                        log.warn("Failed to update request entity with response message: {}", e.getMessage());
-                        // Fallback to status-only update
-                        try {
-                            requestService.updateRequestStatus(existingRequest.getId(), responseStatus);
-                        } catch (AppException fallbackException) {
-                            throw new RuntimeException(fallbackException);
-                        }
-                    }
-                });
+        Request existingRequest = requestRepository.findByJokerId(teamMember.getId());
+        
+        try {
+            requestService.updateRequestStatusWithMessage(existingRequest.getId(), responseStatus, responseMessage);
+        } catch (AppException e) {
+            log.warn("Failed to update request entity with response message: {}", e.getMessage());
+            // Fallback to status-only update
+            try {
+                requestService.updateRequestStatus(existingRequest.getId(), responseStatus);
+            } catch (AppException fallbackException) {
+                throw new RuntimeException(fallbackException);
+            }
+        }
         
         // Map to response
         TeamMemberInviteResponse response = new TeamMemberInviteResponse(
@@ -308,18 +307,9 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                         (response == TeamStatus.APPROVED) ? "accepted" : "rejected",
                         organizer.getUserName());
                 
-                // Find the request by searching for requests from team member to organizer for team join request
-                List<Request> senderRequests = requestService.getRequestsBySender(teamMember.getUser().getId());
-                UUID organizerUserId = organizer.getId();
-                
-                for (Request request : senderRequests) {
-                    if (request.getReceiver().getId().equals(organizerUserId) && 
-                        request.getRequestType() == RequestType.JOIN_TEAM_REQUEST &&
-                        request.getStatus() == ResponseStatus.PENDING) {
-                        requestService.updateRequestStatusWithMessage(request.getId(), requestStatus, responseMessage);
-                        break;
-                    }
-                }
+                Request request = requestRepository.findByJokerId(teamMemberId);
+
+                requestService.updateRequestStatusWithMessage(request.getId(), requestStatus, responseMessage);
 
                 emailService.sendResponseToJoinRequest(teamMember, response);
             } catch (AppException e) {

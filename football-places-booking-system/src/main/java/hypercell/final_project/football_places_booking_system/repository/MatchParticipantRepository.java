@@ -14,4 +14,5 @@ public interface MatchParticipantRepository extends JpaRepository<MatchParticipa
     List<MatchParticipant> findByBookingMatchId(UUID bookingMatchId);
 
     Optional<Object> findByBookingMatchIdAndUserId(UUID id, UUID id1);
+    List<MatchParticipant> findByUserId(UUID userId);
 }
