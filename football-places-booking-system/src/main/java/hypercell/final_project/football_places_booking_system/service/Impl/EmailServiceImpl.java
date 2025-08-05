@@ -251,8 +251,22 @@ public class EmailServiceImpl implements EmailService {
             // Get match details
             String placeName = matchParticipant.getBookingMatch().getPlace().getName();
             String placeImageUrl = matchParticipant.getBookingMatch().getPlace().getImageUrl();
-            String matchStartTime = matchParticipant.getBookingMatch().getStartTime().toString();
-            String matchEndTime = matchParticipant.getBookingMatch().getEndTime().toString();
+            
+            // Format date and time for better readability
+            String matchDate = matchParticipant.getBookingMatch().getStartTime().toLocalDate().toString();
+            String weekDay = matchParticipant.getBookingMatch().getStartTime().getDayOfWeek().toString();
+            
+            // Format start time
+            int startHour = matchParticipant.getBookingMatch().getStartTime().getHour();
+            String startAmPm = startHour >= 12 ? "PM" : "AM";
+            int startDisplayHour = startHour == 0 ? 12 : (startHour > 12 ? startHour - 12 : startHour);
+            String matchStartTime = String.format("%d %s", startDisplayHour, startAmPm);
+            
+            // Format end time
+            int endHour = matchParticipant.getBookingMatch().getEndTime().getHour();
+            String endAmPm = endHour >= 12 ? "PM" : "AM";
+            int endDisplayHour = endHour == 0 ? 12 : (endHour > 12 ? endHour - 12 : endHour);
+            String matchEndTime = String.format("%d %s", endDisplayHour, endAmPm);
 
             // Get participant's name
             String participantName = matchParticipant.getUser().getUserName();
@@ -261,7 +275,7 @@ public class EmailServiceImpl implements EmailService {
             String organizerName = matchParticipant.getBookingMatch().getUser().getUserName();
             
             // Send the email asynchronously
-            sendHtmlMatchInvitationEmail(organizerName, placeName, placeImageUrl, matchStartTime, matchEndTime, email, participantName, matchParticipant.getId());
+            sendHtmlMatchInvitationEmail(organizerName, placeName, placeImageUrl, matchDate, weekDay, matchStartTime, matchEndTime, email, participantName, matchParticipant.getId());
             return CompletableFuture.completedFuture(null);
             
         } catch (Exception e) {
@@ -271,7 +285,7 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    private void sendHtmlMatchInvitationEmail(String organizerName, String placeName, String placeImageUrl, String matchStartTime, String matchEndTime, String email, String participantName, UUID participantId) {
+    private void sendHtmlMatchInvitationEmail(String organizerName, String placeName, String placeImageUrl, String matchDate, String weekDay, String matchStartTime, String matchEndTime, String email, String participantName, UUID participantId) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -288,6 +302,8 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("organizerName", organizerName);
             context.setVariable("placeName", placeName);
             context.setVariable("placeImageUrl", placeImageUrl);
+            context.setVariable("matchDate", matchDate);
+            context.setVariable("weekDay", weekDay);
             context.setVariable("matchStartTime", matchStartTime);
             context.setVariable("matchEndTime", matchEndTime);
             context.setVariable("participantName", participantName);
@@ -313,7 +329,16 @@ public class EmailServiceImpl implements EmailService {
 
             // Get match details
             String placeName = matchParticipant.getBookingMatch().getPlace().getName();
-            String matchStartTime = matchParticipant.getBookingMatch().getStartTime().toString();
+            
+            // Format date and time for better readability
+            String matchDate = matchParticipant.getBookingMatch().getStartTime().toLocalDate().toString();
+            String weekDay = matchParticipant.getBookingMatch().getStartTime().getDayOfWeek().toString();
+            
+            // Format start time
+            int startHour = matchParticipant.getBookingMatch().getStartTime().getHour();
+            String startAmPm = startHour >= 12 ? "PM" : "AM";
+            int startDisplayHour = startHour == 0 ? 12 : (startHour > 12 ? startHour - 12 : startHour);
+            String matchStartTime = String.format("%d %s", startDisplayHour, startAmPm);
 
             // Get organizer details (the one who created the booking match)
             User organizer = matchParticipant.getBookingMatch().getUser();
@@ -321,7 +346,7 @@ public class EmailServiceImpl implements EmailService {
             String organizerEmail = organizer.getEmail();
 
             // Send the response email to the organizer who created the match
-            sendHtmlMatchResponseEmail(participantName, placeName, matchStartTime, organizerName, organizerEmail, response);
+            sendHtmlMatchResponseEmail(participantName, placeName, matchDate, weekDay, matchStartTime, organizerName, organizerEmail, response);
             return CompletableFuture.completedFuture(null);
             
         } catch (Exception e) {
@@ -331,7 +356,7 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    private void sendHtmlMatchResponseEmail(String participantName, String placeName, String matchStartTime, String organizerName, String organizerEmail, ParticipantStatus responseStatus) {
+    private void sendHtmlMatchResponseEmail(String participantName, String placeName, String matchDate, String weekDay, String matchStartTime, String organizerName, String organizerEmail, ParticipantStatus responseStatus) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -346,6 +371,8 @@ public class EmailServiceImpl implements EmailService {
             Context context = new Context();
             context.setVariable("participantName", participantName);
             context.setVariable("placeName", placeName);
+            context.setVariable("matchDate", matchDate);
+            context.setVariable("weekDay", weekDay);
             context.setVariable("matchStartTime", matchStartTime);
             context.setVariable("organizerName", organizerName);
             context.setVariable("responseStatus", responseStatus);
