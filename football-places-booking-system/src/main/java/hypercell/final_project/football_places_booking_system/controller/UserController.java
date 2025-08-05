@@ -57,6 +57,20 @@ public class UserController {
         return userService.filterUsers(email, role, status, username, pageable);
     }
 
+    @GetMapping("/all-sorted")
+    public Page<UserDTO> filterUsersSorted(
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) UserRole role,
+            @RequestParam(required = false) UserStatus status,
+            @RequestParam(required = false) String username,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDirection
+    ) throws AppException {
+        return userService.filterUsersSorted(email, role, status, username, page, size, sortBy, sortDirection);
+    }
+
 
 
     @PatchMapping("/{id}")
