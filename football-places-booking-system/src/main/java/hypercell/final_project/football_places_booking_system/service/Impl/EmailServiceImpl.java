@@ -75,7 +75,7 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("teamName", teamName);
             context.setVariable("teamDescription", teamDescription);
             context.setVariable("toName", toName);
-            context.setVariable("invitationApi", "http://localhost:8080/api/team-members/invitation/" + teamMemberId);
+            context.setVariable("invitationApi", "http://localhost:8080/api/team-members/respond-mail/" + teamMemberId);
 
             // Process the template
             String htmlContent = templateEngine.process("team-invitation-email-content", context);
@@ -185,7 +185,7 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("name", name);
             context.setVariable("teamName", team.getName());
             context.setVariable("teamDescription", team.getDescription());
-            context.setVariable("api", "http://localhost:8080/api/team-members/join-request/respond/" + teamMemberId + "/" + team.getCreator().getId());
+            context.setVariable("api", "http://localhost:8080/api/team-members/join-request/respond-mail/" + teamMemberId + "/" + team.getCreator().getId());
 
             String htmlContent = templateEngine.process("team-request-email-content", context);
             helper.setText(htmlContent, true);
@@ -308,7 +308,7 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("matchEndTime", matchEndTime);
             context.setVariable("participantName", participantName);
             context.setVariable("participantId", participantId);
-            context.setVariable("invitationApi", "http://localhost:8080/api/match-participants/respond/" + participantId);
+            context.setVariable("invitationApi", "http://localhost:8080/api/match-participants/respond-mail/" + participantId);
 
             // Process the template
             String htmlContent = templateEngine.process("match-invitation-email-content", context);

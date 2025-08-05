@@ -71,6 +71,8 @@ public class UserController {
         return userService.filterUsersSorted(email, role, status, username, page, size, sortBy, sortDirection);
     }
 
+
+
     @PatchMapping("/{id}")
     public ResponseEntity<ResponseDTO> updateUser(@PathVariable UUID id, @RequestBody UserDTO userDTO) throws AppException {
         return userService.updateUser(id, userDTO);

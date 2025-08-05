@@ -3,27 +3,38 @@ package hypercell.final_project.football_places_booking_system.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import hypercell.final_project.football_places_booking_system.exception.AppException;
+import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
 import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper;
+import static hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper.toResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingResponseDTO;
-import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingSlotUpdateMessage;
 import hypercell.final_project.football_places_booking_system.service.Impl.BookingMatchServiceImpl;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
-
-import static hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper.toResponseDTO;
 
 @RestController
 @RequestMapping("/api/booking-matches")
 @RequiredArgsConstructor
 public class BookingMatchController {
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     private final BookingMatchServiceImpl bookingMatchService;
 
@@ -34,6 +45,15 @@ public class BookingMatchController {
     ) throws AppException {
         User currentUser = (User) userDetails;
         BookingMatch created = bookingMatchService.createBookingMatch(dto, currentUser.getId());
+
+        // notify other users for the booking of the match using websockets
+
+        String bookingDate = created.getStartTime().toLocalDate().toString(); 
+        messagingTemplate.convertAndSend("/topic/bookings", new BookingSlotUpdateMessage(
+            created.getPlace().getId(),
+            bookingDate
+        ));
+        
         return new ResponseEntity<>(toResponseDTO(created), HttpStatus.CREATED);
     }
 

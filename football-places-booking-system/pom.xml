@@ -136,12 +136,23 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
 	</dependencies>
 
 
 
 
 	<build>
+		<finalName>footballSystem</finalName>
 		<plugins>
         <!-- change userName and password to your database -->
 			<!-- <plugin>
