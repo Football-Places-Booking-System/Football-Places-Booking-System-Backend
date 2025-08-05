@@ -53,7 +53,7 @@ public class AuthenticationController {
 
             // Get us
             if(user.getStatus() == UserStatus.INACTIVE){
-                throw new InvalidCredentialsException(ErrorCode.USER_INACTIVE);
+                throw new InvalidCredentialsException(ErrorCode.FORBIDDEN_STATUS);
             }
             
             String token = jwtService.generateToken(user);

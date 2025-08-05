@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +39,7 @@ public class BookingMatchController {
 
     private final BookingMatchServiceImpl bookingMatchService;
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @PostMapping
     public ResponseEntity<BookingResponseDTO> create(
             @RequestBody BookingDTO dto,
@@ -48,15 +50,15 @@ public class BookingMatchController {
 
         // notify other users for the booking of the match using websockets
 
-        String bookingDate = created.getStartTime().toLocalDate().toString(); 
         messagingTemplate.convertAndSend("/topic/bookings", new BookingSlotUpdateMessage(
             created.getPlace().getId(),
-            bookingDate
+            created.getStartTime().toLocalDate().toString()
         ));
         
         return new ResponseEntity<>(toResponseDTO(created), HttpStatus.CREATED);
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @PatchMapping("/cancel/{id}")
     public ResponseEntity<String> cancel(
             @PathVariable UUID id,
@@ -67,12 +69,14 @@ public class BookingMatchController {
         return ResponseEntity.ok("Match cancelled");
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/{id}")
     public ResponseEntity<BookingResponseDTO> getById(@PathVariable UUID id) throws AppException {
         BookingMatch match = bookingMatchService.getById(id);
         return ResponseEntity.ok(toResponseDTO(match));
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/details/{id}")
     public ResponseEntity<BookingDetailRespDTO> getBookingMatchDetails(
             @PathVariable UUID id
@@ -80,7 +84,7 @@ public class BookingMatchController {
         return ResponseEntity.ok(bookingMatchService.getBookingMatchDetails(id));
     }
 
-
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<BookingResponseDTO>> getByUser(@PathVariable UUID userId) throws AppException {
         return ResponseEntity.ok(
@@ -90,6 +94,7 @@ public class BookingMatchController {
         );
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/place/{placeId}")
     public ResponseEntity<List<BookingResponseDTO>> getByPlace(@PathVariable UUID placeId) throws AppException {
         return ResponseEntity.ok(
@@ -99,6 +104,7 @@ public class BookingMatchController {
         );
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/team/{teamId}")
     public ResponseEntity<List<BookingResponseDTO>> getByTeam(@PathVariable UUID teamId) throws AppException {
         return ResponseEntity.ok(
@@ -108,6 +114,7 @@ public class BookingMatchController {
         );
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/all")
     public ResponseEntity<List<BookingResponseDTO>> getAll() {
         return ResponseEntity.ok(
@@ -117,7 +124,7 @@ public class BookingMatchController {
         );
     }
 
-    // NEW: Get matches where the current user is an Organizer
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/my/organizer")
     public ResponseEntity<List<BookingResponseDTO>> getMyMatchesAsOrganizer(
             @AuthenticationPrincipal UserDetails userDetails

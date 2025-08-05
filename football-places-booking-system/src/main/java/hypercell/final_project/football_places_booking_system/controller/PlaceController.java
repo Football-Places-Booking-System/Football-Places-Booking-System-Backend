@@ -32,8 +32,8 @@ import lombok.RequiredArgsConstructor;
 public class PlaceController {
 
     private final PlaceServiceImpl placeService;
-
-    @PreAuthorize("hasRole('ADMIN')")
+    
+    @PreAuthorize("@authService.is('ACTIVE') and hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<PlaceDTO> create(@RequestBody PlaceDTO placeDto) throws AppException {
         PlaceDTO placeDTO = placeService.createPlace(placeDto);
@@ -41,12 +41,14 @@ public class PlaceController {
         return new ResponseEntity<>(placeDTO, HttpStatus.CREATED);
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/{id}")
     public ResponseEntity<PlaceDTO> getPlaceById(@PathVariable UUID id) throws AppException {
         PlaceDTO place = placeService.getPlaceById(id);
         return new ResponseEntity<>(place, HttpStatus.OK);
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/all")
     public Page<PlaceDTO> filterPlaces(
             @RequestParam(required = false) String name,
@@ -60,13 +62,13 @@ public class PlaceController {
         return placeService.filterPlaces(name, location, placeType, imageUrl, pageable);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@authService.is('ACTIVE') and hasRole('ADMIN')")
     @PatchMapping("/{id}")
     public ResponseEntity<ResponseDTO> updatePlace(@PathVariable UUID id, @RequestBody PlaceDTO updatedPlace) throws AppException {
         return placeService.updatePlace(id, updatedPlace);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@authService.is('ACTIVE') and hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseDTO> deletePlace(@PathVariable UUID id) throws AppException{
         return placeService.deletePlace(id);

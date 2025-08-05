@@ -23,10 +23,25 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json");
-        response.getWriter().write(
-            String.format("{\"code\":%d,\"msg\":\"%s\"}",
-                ErrorCode.FORBIDDEN.getCode(),
-                ErrorCode.FORBIDDEN.getMsg())
-        );
+
+        String reason = (String) request.getAttribute("ERROR");
+
+        switch (reason) {
+            case "NOT_ORGANIZER" -> response.getWriter().write(
+                        String.format("{\"code\":%d,\"msg\":\"%s\"}",
+                                ErrorCode.FORBIDDEN_ROLE.getCode(),
+                                ErrorCode.FORBIDDEN_ROLE.getMsg())
+                );
+            case "NOT_ACTIVE" -> response.getWriter().write(
+                        String.format("{\"code\":%d,\"msg\":\"%s\"}",
+                                ErrorCode.FORBIDDEN_STATUS.getCode(),
+                                ErrorCode.FORBIDDEN_STATUS.getMsg())
+                );
+            default -> response.getWriter().write(
+                        String.format("{\"code\":%d,\"msg\":\"%s\"}",
+                                ErrorCode.FORBIDDEN.getCode(),
+                                ErrorCode.FORBIDDEN.getMsg())
+                );
+        }
     }
 }

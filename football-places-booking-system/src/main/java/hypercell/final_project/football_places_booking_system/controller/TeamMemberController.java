@@ -40,6 +40,7 @@ public class TeamMemberController {
 
     // @PreAuthorize("@authService.hasTeamRole(#teamId, 'ORGANIZER')")
     // add teamId as a path variable
+    @PreAuthorize("@authService.is('ACTIVE')")
     @PostMapping
     public ResponseEntity<TeamMemberResponse> createTeamMember(
             @Valid @RequestBody TeamMemberCreationRequest request) throws AppException {
@@ -47,6 +48,7 @@ public class TeamMemberController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/{id}")
     public ResponseEntity<TeamMemberResponse> getTeamMemberById(
             @PathVariable UUID id) {
@@ -54,6 +56,7 @@ public class TeamMemberController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/team/{teamId}")
     // Retrieves all team members by team ID
     public ResponseEntity<List<TeamMemberResponse>> getTeamMembersByTeam(
@@ -63,6 +66,7 @@ public class TeamMemberController {
         return ResponseEntity.ok(responses);
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<TeamMemberResponse>> getTeamMembersByUser(
             @PathVariable UUID userId) {
@@ -70,6 +74,7 @@ public class TeamMemberController {
         return ResponseEntity.ok(responses);
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @PutMapping
     public ResponseEntity<TeamMemberResponse> updateTeamMember(
             @Valid @RequestBody TeamMemberUpdateRequest request) {
@@ -77,7 +82,7 @@ public class TeamMemberController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("@authService.hasTeamRole(#teamId, 'ORGANIZER')")
+    @PreAuthorize("@authService.is('ACTIVE') and @authService.hasTeamRole(#teamId, 'ORGANIZER')")
     @PostMapping("/invite/{teamId}")
     public ResponseEntity<TeamMemberResponse> inviteByEmail(
             @PathVariable UUID teamId,
@@ -88,6 +93,7 @@ public class TeamMemberController {
     }
 
     // Endpoint to accept or reject an invitation via frontend
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/respond/{teamMemberId}")
     public void respondToInvitation(
             @PathVariable UUID teamMemberId,
@@ -108,6 +114,7 @@ public class TeamMemberController {
                 .build();
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @PostMapping("/join-request/{teamId}")
     public ResponseEntity<TeamMemberResponse> requestToJoinTeam(
             @PathVariable UUID teamId,
@@ -117,6 +124,7 @@ public class TeamMemberController {
     }
 
     // Endpoint to accept or reject a request via frontend
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/join-request/respond/{teamMemberId}/{organizerId}")
     public void respondToJoinRequest(
             @PathVariable UUID teamMemberId,
@@ -137,6 +145,7 @@ public class TeamMemberController {
                 .build();
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/join-requests/{teamId}")
     public ResponseEntity<List<TeamMemberResponse>> listPendingRequests(
             @PathVariable UUID teamId,
@@ -148,6 +157,7 @@ public class TeamMemberController {
         return ResponseEntity.ok(teamMemberService.getPendingJoinRequests(teamId));
     }
 
+    @PreAuthorize("@authService.is('ACTIVE') and @authService.hasTeamRole(#teamId, 'ORGANIZER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTeamMember(
             @PathVariable UUID id,
@@ -157,6 +167,7 @@ public class TeamMemberController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/isOrganizer/{teamId}")
     public ResponseEntity<Boolean> getTeamMember(
             @PathVariable UUID teamId,
@@ -166,5 +177,4 @@ public class TeamMemberController {
         boolean isOrganizer = teamMemberService.isOrganizer(user.getId(), teamId);
         return ResponseEntity.ok(isOrganizer);
     }
-
 }
