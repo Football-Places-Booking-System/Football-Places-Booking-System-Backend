@@ -87,7 +87,7 @@ public class BookingMatchServiceImpl implements BookingMatchService {
         match.setTeam(team);
         match.setStartTime(dto.startTime());
         match.setEndTime(dto.endTime());
-        match.setStatus(MatchStatus.PENDING);
+        match.setStatus(MatchStatus.PENDING_PLAYERS);
 
         return bookingMatchRepository.save(match);
     }
