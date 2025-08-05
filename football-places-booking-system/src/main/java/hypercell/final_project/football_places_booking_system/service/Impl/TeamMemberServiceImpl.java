@@ -31,6 +31,7 @@ import hypercell.final_project.football_places_booking_system.repository.TeamRep
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,7 +43,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
     private final TeamServiceImpl teamService;
-    private final EmailServiceImpl emailService;
+    private final EmailService emailService;
     private final RequestService requestService;
     private final RequestRepository requestRepository;
 
@@ -202,10 +203,6 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // Update the Request entity status with meaningful response message
         ResponseStatus responseStatus = request == TeamStatus.APPROVED ? ResponseStatus.ACCEPTED : ResponseStatus.REJECTED;
         
-        // Find the request by sender (inviter) and receiver (team member) and type
-        UUID inviterId = teamMember.getInvitedBy().getId();
-        UUID receiverId = teamMember.getUser().getId();
-        
         // Create meaningful response message
         String responseMessage = String.format("Your invitation to join Team %s has been %s by %s",
                 teamMember.getTeam().getName(),
@@ -213,7 +210,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 teamMember.getUser().getUserName());
         
         // Find and update the request with response message
-        Request existingRequest = requestRepository.findByJokerId(teamMember.getId());
+        Request existingRequest = requestRepository.findByJokerId(teamMemberId);
         
         try {
             requestService.updateRequestStatusWithMessage(existingRequest.getId(), responseStatus, responseMessage);

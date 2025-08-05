@@ -1,4 +1,4 @@
-package hypercell.final_project.football_places_booking_system.service;
+package hypercell.final_project.football_places_booking_system.service.Impl;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,13 +23,14 @@ import hypercell.final_project.football_places_booking_system.repository.TeamMem
 import hypercell.final_project.football_places_booking_system.repository.TeamRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.BookingMatchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class BookingMatchService {
+public class BookingMatchServiceImpl implements BookingMatchService {
 
     private final BookingMatchRepository bookingMatchRepository;
     private final UserRepository userRepository;

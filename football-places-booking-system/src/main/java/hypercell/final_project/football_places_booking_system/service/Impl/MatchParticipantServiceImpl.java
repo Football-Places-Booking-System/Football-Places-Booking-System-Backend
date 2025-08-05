@@ -1,9 +1,17 @@
-package hypercell.final_project.football_places_booking_system.service;
+package hypercell.final_project.football_places_booking_system.service.Impl;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.model.db.Request;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.UserMatchResponseDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.MatchParticipantService;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
@@ -12,10 +20,7 @@ import hypercell.final_project.football_places_booking_system.exception.NotFound
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
 import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
-import hypercell.final_project.football_places_booking_system.model.db.Request;
 import hypercell.final_project.football_places_booking_system.model.db.User;
-import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
 import hypercell.final_project.football_places_booking_system.model.enums.PlaceType;
@@ -24,18 +29,16 @@ import hypercell.final_project.football_places_booking_system.model.enums.Respon
 import hypercell.final_project.football_places_booking_system.repository.MatchParticipantRepository;
 import hypercell.final_project.football_places_booking_system.repository.RequestRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
-import hypercell.final_project.football_places_booking_system.service.Impl.EmailServiceImpl;
-import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class MatchParticipantService {
+public class MatchParticipantServiceImpl implements MatchParticipantService {
 
     private final MatchParticipantRepository matchParticipantRepository;
     private final UserRepository userRepository;
-    private final BookingMatchService bookingMatchService;
-    private final EmailServiceImpl emailService;
+    private final BookingMatchServiceImpl bookingMatchService;
+    private final EmailService emailService;
     private final RequestService requestService;
     private final RequestRepository requestRepository;
 
@@ -83,11 +86,24 @@ public class MatchParticipantService {
         String senderName = match.getUser().getUserName();
         String placeName = match.getPlace().getName();
         String teamName = match.getTeam().getName();
-        String startTime = match.getStartTime().toString();
-        String endTime = match.getEndTime().toString();
         
-        String invitationMessage = String.format("%s has invited you to join match at %s with team %s from %s to %s", 
-            senderName, placeName, teamName, startTime, endTime);
+        // Format date and time for better readability
+        String matchDate = match.getStartTime().toLocalDate().toString();
+        
+        // Format start time
+        int startHour = match.getStartTime().getHour();
+        String startAmPm = startHour >= 12 ? "pm" : "am";
+        int startDisplayHour = startHour == 0 ? 12 : (startHour > 12 ? startHour - 12 : startHour);
+        String startTime = String.format("%d %s", startDisplayHour, startAmPm);
+        
+        // Format end time
+        int endHour = match.getEndTime().getHour();
+        String endAmPm = endHour >= 12 ? "pm" : "am";
+        int endDisplayHour = endHour == 0 ? 12 : (endHour > 12 ? endHour - 12 : endHour);
+        String endTime = String.format("%d %s", endDisplayHour, endAmPm);
+        
+        String invitationMessage = String.format("%s has invited you to join match at %s with team %s at %s from %s to %s", 
+            senderName, placeName, teamName, matchDate, startTime, endTime);
         
         requestService.createRequestWithMessage(senderId, receiverId, RequestType.MATCH_INVITATION, invitationMessage, matchParticipant.getId());
 
@@ -155,27 +171,23 @@ public class MatchParticipantService {
 
         // Update the Request entity status
         ResponseStatus responseStatus = status == ParticipantStatus.ACCEPTED ? ResponseStatus.ACCEPTED : ResponseStatus.REJECTED;
-        
-        // Find the request by sender (match organizer) and receiver (participant) and type
-        UUID senderId = participant.getBookingMatch().getUser().getId(); // The match organizer
-        UUID receiverId = participant.getUser().getId(); // The participant
-        
+
         // Find and update the request
         Request existingRequest = requestRepository.findByJokerId(participantId);
 
         try {
-            // Create response message
+            // Create a response message
             String participantName = participant.getUser().getUserName();
             String responseText = status == ParticipantStatus.ACCEPTED ? "accepted" : "declined";
             String responseMessage = String.format("%s has %s the match invitation", participantName, responseText);
-            
+
             requestService.updateRequestStatusWithMessage(existingRequest.getId(), responseStatus, responseMessage);
         } catch (AppException e) {
             // Log the error but don't fail the main operation
             throw new RuntimeException("Failed to update request status: " + e.getMessage(), e);
         }
 
-        // Send response notification email to the match organizer
+        // Send a response notification email to the match organizer
         emailService.sendResponseToMatchParticipantInvitation(participant, status);
 
         return matchParticipantRepository.save(participant);
@@ -195,7 +207,7 @@ public class MatchParticipantService {
     }
 
     // Get all matches that a user has participated in
-    public List<BookingMatch> getUserParticipatedMatches(UUID userId) throws AppException {
+    public List<UserMatchResponseDTO> getUserParticipatedMatches(UUID userId) throws AppException {
         if (userId == null) {
             throw new ValidationException(ErrorCode.INVALID_PARTICIPANT_ID);
         }
@@ -204,13 +216,20 @@ public class MatchParticipantService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
-        // Fetch all participant records for this user
-        List<MatchParticipant> participations = matchParticipantRepository.findByUserId(userId);
-
         // Map to booking matches
-        return participations.stream()
-                .map(MatchParticipant::getBookingMatch)
-                .distinct()
+        return matchParticipantRepository.findByUserId(userId).stream()
+                .map(mp -> UserMatchResponseDTO.builder()
+                        .matchId(mp.getBookingMatch().getId())
+                        .participantId(mp.getId())   // Participant primary key
+                        .teamId(mp.getBookingMatch().getTeam().getId())
+                        .teamName(mp.getBookingMatch().getTeam().getName())
+                        .placeId(mp.getBookingMatch().getPlace().getId())
+                        .placeName(mp.getBookingMatch().getPlace().getName())
+                        .startTime(mp.getBookingMatch().getStartTime())
+                        .endTime(mp.getBookingMatch().getEndTime())
+                        .bookingStatus(mp.getBookingMatch().getStatus())
+                        .invitationStatus(mp.getStatus())   // INVITED, ACCEPTED, DECLINED
+                        .build())
                 .toList();
     }
 

@@ -1,6 +1,7 @@
 package hypercell.final_project.football_places_booking_system.service.Impl;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -33,33 +34,39 @@ public class EmailServiceImpl implements EmailService {
     private final UserRepository userRepository;
 
     @Override
-    public void sendInviteToJoinTeam(User invitedBy, User inviteeUser, String email, Team team, UUID teamMemberId) throws AppException {
+    public CompletableFuture<Void> sendInviteToJoinTeam(User invitedBy, User inviteeUser, String inviteToEmail, Team team, UUID teamMemberId) throws AppException {
         try {
             // Get the inviter's name
             String invitedByName = invitedBy.getUserName();
-                    
+
             String teamName = team.getName();
             String teamDescription = team.getDescription();
-            
+
             // Get invitee's name
             String toName = inviteeUser.getUserName();
             
-            // Send the email
-            sendHtmlTeamInviteEmail(invitedByName, teamName, teamDescription, email, toName, teamMemberId);
+            // Send the email asynchronously
+            return sendHtmlTeamInviteEmail(invitedByName, teamName, teamDescription, inviteToEmail, toName, teamMemberId);
             
+            // Send the email asynchronously
+            // return sendHtmlTeamInviteEmail(invitedByName, teamName, teamDescription, inviteToEmail, toName, teamMember.getId());
+
+
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e);
-//            throw new RuntimeException(ErrorCode.EMAIL_SEND_FAILURE);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e));
+            return future;
         }
     }
 
-    public void sendHtmlTeamInviteEmail(String invitedByName, String teamName, String teamDescription, String email, String toName, UUID teamMemberId) {
+    @Override
+    public CompletableFuture<Void> sendHtmlTeamInviteEmail(String invitedByName, String teamName, String teamDescription, String inviteToEmail, String toName, UUID teamMemberId) throws AppException {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
             helper.setFrom("football.booking.system@gmail.com");
-            helper.setTo(email);
+            helper.setTo(inviteToEmail);
             helper.setSubject("Invite to Join Team " + teamName);
 
             // Create Thymeleaf context with variables
@@ -68,7 +75,7 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("teamName", teamName);
             context.setVariable("teamDescription", teamDescription);
             context.setVariable("toName", toName);
-            context.setVariable("invitationApi", "http://localhost:8080/api/team-members/invitation/" + teamMemberId);
+            context.setVariable("invitationApi", "http://localhost:8080/api/team-members/respond-mail/" + teamMemberId);
 
             // Process the template
             String htmlContent = templateEngine.process("team-invitation-email-content", context);
@@ -77,39 +84,45 @@ public class EmailServiceImpl implements EmailService {
 //            helper.addInline("database.png", new File("E:\\HyperCell\\WorkSpace\\Try_Repos\\javamail\\src\\main\\resources\\static\\RE.png"));
 
             mailSender.send(message);
+            return CompletableFuture.completedFuture(null);
 
 //            return "Email sent successfully!";
         }
         catch (Exception e) {
-            throw new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Failed to send team invitation email: " + e.getMessage(), e));
+            return future;
 //            return e.getMessage();
         }
 
     }
 
     @Override
-    public void sendResponseToTeamMemberInvitation(TeamMember teamMember, TeamStatus request) {
+    public CompletableFuture<Void> sendResponseToTeamMemberInvitation(TeamMember teamMember, TeamStatus response) {
         try {
             // Get team member details
             String teamMemberName = userRepository.findUsernameById(teamMember.getUser().getId());
-            
+
             // Get team details
             Team team = teamRepository.findById(teamMember.getTeam().getId())
                     .orElseThrow(() -> new RuntimeException("Team not found"));
             String teamName = team.getName();
-            
+
             // Get organizer details (assuming organizer is the one who invited the team member)
             User organizer = userRepository.findById(teamMember.getInvitedBy().getId())
                     .orElseThrow(() -> new RuntimeException("Team organizer not found"));
-            
+
             String organizerName = organizer.getUserName();
             String organizerEmail = organizer.getEmail();
-            
+
             // Send the response email to the organizer who invited the team member
-            sendHtmlTeamResponseEmail(teamMemberName, teamName, organizerName, organizerEmail, request);
+            sendHtmlTeamResponseEmail(teamMemberName, teamName, organizerName, organizerEmail, response);
+            return CompletableFuture.completedFuture(null);
             
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send team response email: " + e.getMessage(), e);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Failed to send team response email: " + e.getMessage(), e));
+            return future;
         }
     }
 
@@ -120,7 +133,7 @@ public class EmailServiceImpl implements EmailService {
 
             helper.setFrom("football.booking.system@gmail.com");
             helper.setTo(organizerEmail);
-            
+
             String subject = "Team Invitation " + (responseStatus == TeamStatus.APPROVED ? "Accepted" : "Rejected") + " - " + teamName;
             helper.setSubject(subject);
 
@@ -146,13 +159,16 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendRequestToJoinTeam(User user, Team team, UUID teamMemberId) throws AppException {
+    public CompletableFuture<Void> sendRequestToJoinTeam(User user, Team team, UUID teamMemberId) throws AppException {
         try {
             String userName = user.getUserName();
-            
+
             sendHtmlTeamRequestEmail(userName, team, teamMemberId);
+            return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send team request email: " + e.getMessage(), e);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Failed to send team request email: " + e.getMessage(), e));
+            return future;
         }
     }
 
@@ -169,7 +185,7 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("name", name);
             context.setVariable("teamName", team.getName());
             context.setVariable("teamDescription", team.getDescription());
-            context.setVariable("api", "http://localhost:8080/api/team-members/join-request/respond/" + teamMemberId + "/" + team.getCreator().getId());
+            context.setVariable("api", "http://localhost:8080/api/team-members/join-request/respond-mail/" + teamMemberId + "/" + team.getCreator().getId());
 
             String htmlContent = templateEngine.process("team-request-email-content", context);
             helper.setText(htmlContent, true);
@@ -181,23 +197,25 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendResponseToJoinRequest(TeamMember teamMember, TeamStatus response) {
+    public CompletableFuture<Void> sendResponseToJoinRequest(TeamMember teamMember, TeamStatus response) {
         try {
             Team team = teamRepository.findById(teamMember.getTeam().getId())
                     .orElseThrow(() -> new RuntimeException("Team not found"));
             String teamName = team.getName();
 
             String email = teamMember.getUser().getEmail();
-
             String teamMemberName = teamMember.getUser().getUserName();
-            
+
             sendHtmlJoinRequestResponseEmail(teamMemberName, teamName, email, response);
+            return CompletableFuture.completedFuture(null);
             
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send join request response email: " + e.getMessage(), e);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Failed to send join request response email: " + e.getMessage(), e));
+            return future;
         }
     }
-    
+
     private void sendHtmlJoinRequestResponseEmail(String teamMemberName, String teamName, String email, TeamStatus responseStatus) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -205,7 +223,7 @@ public class EmailServiceImpl implements EmailService {
 
             helper.setFrom("football.booking.system@gmail.com");
             helper.setTo(email);
-            
+
             String subject = "Team Join Request " + (responseStatus == TeamStatus.APPROVED ? "Accepted" : "Rejected") + " - " + teamName;
             helper.setSubject(subject);
 
@@ -228,29 +246,46 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendInvitationEmail(String email, MatchParticipant matchParticipant) {
+    public CompletableFuture<Void> sendInvitationEmail(String email, MatchParticipant matchParticipant) {
         try {
             // Get match details
             String placeName = matchParticipant.getBookingMatch().getPlace().getName();
             String placeImageUrl = matchParticipant.getBookingMatch().getPlace().getImageUrl();
-            String matchStartTime = matchParticipant.getBookingMatch().getStartTime().toString();
-            String matchEndTime = matchParticipant.getBookingMatch().getEndTime().toString();
             
+            // Format date and time for better readability
+            String matchDate = matchParticipant.getBookingMatch().getStartTime().toLocalDate().toString();
+            String weekDay = matchParticipant.getBookingMatch().getStartTime().getDayOfWeek().toString();
+            
+            // Format start time
+            int startHour = matchParticipant.getBookingMatch().getStartTime().getHour();
+            String startAmPm = startHour >= 12 ? "PM" : "AM";
+            int startDisplayHour = startHour == 0 ? 12 : (startHour > 12 ? startHour - 12 : startHour);
+            String matchStartTime = String.format("%d %s", startDisplayHour, startAmPm);
+            
+            // Format end time
+            int endHour = matchParticipant.getBookingMatch().getEndTime().getHour();
+            String endAmPm = endHour >= 12 ? "PM" : "AM";
+            int endDisplayHour = endHour == 0 ? 12 : (endHour > 12 ? endHour - 12 : endHour);
+            String matchEndTime = String.format("%d %s", endDisplayHour, endAmPm);
+
             // Get participant's name
             String participantName = matchParticipant.getUser().getUserName();
-            
+
             // Get match organizer (the user who created the booking match)
             String organizerName = matchParticipant.getBookingMatch().getUser().getUserName();
             
-            // Send the email
-            sendHtmlMatchInvitationEmail(organizerName, placeName, placeImageUrl, matchStartTime, matchEndTime, email, participantName, matchParticipant.getId());
+            // Send the email asynchronously
+            sendHtmlMatchInvitationEmail(organizerName, placeName, placeImageUrl, matchDate, weekDay, matchStartTime, matchEndTime, email, participantName, matchParticipant.getId());
+            return CompletableFuture.completedFuture(null);
             
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send match invitation email: " + e.getMessage(), e);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Failed to send match invitation email: " + e.getMessage(), e));
+            return future;
         }
     }
 
-    private void sendHtmlMatchInvitationEmail(String organizerName, String placeName, String placeImageUrl, String matchStartTime, String matchEndTime, String email, String participantName, UUID participantId) {
+    private void sendHtmlMatchInvitationEmail(String organizerName, String placeName, String placeImageUrl, String matchDate, String weekDay, String matchStartTime, String matchEndTime, String email, String participantName, UUID participantId) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -267,11 +302,13 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("organizerName", organizerName);
             context.setVariable("placeName", placeName);
             context.setVariable("placeImageUrl", placeImageUrl);
+            context.setVariable("matchDate", matchDate);
+            context.setVariable("weekDay", weekDay);
             context.setVariable("matchStartTime", matchStartTime);
             context.setVariable("matchEndTime", matchEndTime);
             context.setVariable("participantName", participantName);
             context.setVariable("participantId", participantId);
-            context.setVariable("invitationApi", "http://localhost:8080/api/match-participants/respond/" + participantId);
+            context.setVariable("invitationApi", "http://localhost:8080/api/match-participants/respond-mail/" + participantId);
 
             // Process the template
             String htmlContent = templateEngine.process("match-invitation-email-content", context);
@@ -285,36 +322,48 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendResponseToMatchParticipantInvitation(MatchParticipant matchParticipant, ParticipantStatus response) {
+    public CompletableFuture<Void> sendResponseToMatchParticipantInvitation(MatchParticipant matchParticipant, ParticipantStatus response) {
         try {
             // Get participant details
             String participantName = matchParticipant.getUser().getUserName();
-            
+
             // Get match details
             String placeName = matchParticipant.getBookingMatch().getPlace().getName();
-            String matchStartTime = matchParticipant.getBookingMatch().getStartTime().toString();
             
+            // Format date and time for better readability
+            String matchDate = matchParticipant.getBookingMatch().getStartTime().toLocalDate().toString();
+            String weekDay = matchParticipant.getBookingMatch().getStartTime().getDayOfWeek().toString();
+            
+            // Format start time
+            int startHour = matchParticipant.getBookingMatch().getStartTime().getHour();
+            String startAmPm = startHour >= 12 ? "PM" : "AM";
+            int startDisplayHour = startHour == 0 ? 12 : (startHour > 12 ? startHour - 12 : startHour);
+            String matchStartTime = String.format("%d %s", startDisplayHour, startAmPm);
+
             // Get organizer details (the one who created the booking match)
             User organizer = matchParticipant.getBookingMatch().getUser();
             String organizerName = organizer.getUserName();
             String organizerEmail = organizer.getEmail();
-            
+
             // Send the response email to the organizer who created the match
-            sendHtmlMatchResponseEmail(participantName, placeName, matchStartTime, organizerName, organizerEmail, response);
+            sendHtmlMatchResponseEmail(participantName, placeName, matchDate, weekDay, matchStartTime, organizerName, organizerEmail, response);
+            return CompletableFuture.completedFuture(null);
             
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send match response email: " + e.getMessage(), e);
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(new RuntimeException("Failed to send match response email: " + e.getMessage(), e));
+            return future;
         }
     }
 
-    private void sendHtmlMatchResponseEmail(String participantName, String placeName, String matchStartTime, String organizerName, String organizerEmail, ParticipantStatus responseStatus) {
+    private void sendHtmlMatchResponseEmail(String participantName, String placeName, String matchDate, String weekDay, String matchStartTime, String organizerName, String organizerEmail, ParticipantStatus responseStatus) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
             helper.setFrom("football.booking.system@gmail.com");
             helper.setTo(organizerEmail);
-            
+
             String subject = "Match Invitation " + (responseStatus == ParticipantStatus.ACCEPTED ? "Accepted" : "Declined") + " - " + placeName;
             helper.setSubject(subject);
 
@@ -322,6 +371,8 @@ public class EmailServiceImpl implements EmailService {
             Context context = new Context();
             context.setVariable("participantName", participantName);
             context.setVariable("placeName", placeName);
+            context.setVariable("matchDate", matchDate);
+            context.setVariable("weekDay", weekDay);
             context.setVariable("matchStartTime", matchStartTime);
             context.setVariable("organizerName", organizerName);
             context.setVariable("responseStatus", responseStatus);

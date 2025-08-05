@@ -1,7 +1,8 @@
-package hypercell.final_project.football_places_booking_system.service;
+package hypercell.final_project.football_places_booking_system.service.Impl;
 
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.service.Interfaces.PlaceService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -23,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class PlaceService {
+public class PlaceServiceImpl implements PlaceService {
 
     private final PlaceRepository placeRepository;
 

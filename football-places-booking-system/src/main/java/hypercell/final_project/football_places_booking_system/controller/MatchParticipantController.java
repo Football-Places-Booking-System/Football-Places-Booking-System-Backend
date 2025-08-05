@@ -1,14 +1,19 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingResponseDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.UserMatchResponseDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,9 +32,9 @@ import hypercell.final_project.football_places_booking_system.model.dto.MatchPar
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
-import hypercell.final_project.football_places_booking_system.service.BookingMatchService;
+import hypercell.final_project.football_places_booking_system.service.Impl.BookingMatchServiceImpl;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
-import hypercell.final_project.football_places_booking_system.service.MatchParticipantService;
+import hypercell.final_project.football_places_booking_system.service.Impl.MatchParticipantServiceImpl;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -37,9 +42,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MatchParticipantController {
 
-    private final MatchParticipantService matchParticipantService;
+    private final MatchParticipantServiceImpl matchParticipantService;
     private final TeamMemberService teamMemberService;
-    private final BookingMatchService bookingMatchService;
+    private final BookingMatchServiceImpl bookingMatchService;
 
     /**
      * Invite a user to participate in a match.
@@ -67,33 +72,27 @@ public class MatchParticipantController {
         return new ResponseEntity<>(MatchPartMapper.toResponseDTO(participant), HttpStatus.CREATED);
     }
 
-    /**
-     * Respond to invitation (Accept or Decline).
-     */
-//    @PutMapping("/respond/{id}")
-    @PatchMapping("/respond/{matchParticipantId}")
-    public ResponseEntity<MatchPartResponseDTO> respond(
+    // Endpoint to accept or reject invitation via frontend
+    @GetMapping("/respond/{matchParticipantId}")
+    public void respond(
             @PathVariable UUID matchParticipantId,
             @RequestParam ParticipantStatus status
     ) throws AppException {
-        var participant = matchParticipantService.respondToInvitation(matchParticipantId, status);
-        return ResponseEntity.ok(MatchPartMapper.toResponseDTO(participant));
+        matchParticipantService.respondToInvitation(matchParticipantId, status);
     }
 
-//     /**
-//      * Respond to invitation (Accept or Decline).
-//      */
-//     @GetMapping("/respond-mail/{id}")
-//     public ResponseEntity<Void> respondMail(
-//             @PathVariable UUID id,
-//             @RequestParam ParticipantStatus status
-//     ) throws AppException {
-//         matchParticipantService.respondToInvitation(id, status);
-//         return ResponseEntity.status(HttpStatus.FOUND)
-//                 .location(URI.create("http://localhost:4200/"))
-//                 .build();
-//     }
-
+    // Endpoint to accept or reject invitation via mail
+    @GetMapping("/respond-mail/{id}")
+    public ResponseEntity<Void> respondMail(
+            @PathVariable UUID id,
+            @RequestParam ParticipantStatus status
+    ) throws AppException {
+        matchParticipantService.respondToInvitation(id, status);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                // change url
+                .location(URI.create("http://localhost:4200/dashboard/matches"))
+                .build();
+    }
 
     /**
      *   Get participants for a match.
@@ -123,15 +122,12 @@ public class MatchParticipantController {
     }
 
     @GetMapping("/user/matches")
-    public ResponseEntity<List<BookingResponseDTO>> getMatchesByUserDetails(
+    public ResponseEntity<List<UserMatchResponseDTO>> getMatchesByUserDetails(
             @AuthenticationPrincipal UserDetails userDetails
     ) throws AppException {
         User currentUser = (User) userDetails;
 
-        var matches = matchParticipantService.getUserParticipatedMatches(currentUser.getId())
-                .stream()
-                .map(BookingMapper::toResponseDTO)
-                .toList();
+        var matches = matchParticipantService.getUserParticipatedMatches(currentUser.getId());
 
         return ResponseEntity.ok(matches);
     }
@@ -144,6 +140,4 @@ public class MatchParticipantController {
         var matches = matchParticipantService.getUserParticipatedMatchesDetailed(currentUser.getId());
         return ResponseEntity.ok(matches);
     }
-
-
 }

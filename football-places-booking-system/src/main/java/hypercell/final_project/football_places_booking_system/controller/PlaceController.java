@@ -22,7 +22,7 @@ import hypercell.final_project.football_places_booking_system.exception.AppExcep
 import hypercell.final_project.football_places_booking_system.model.dto.PlaceDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.ResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.enums.PlaceType;
-import hypercell.final_project.football_places_booking_system.service.PlaceService;
+import hypercell.final_project.football_places_booking_system.service.Impl.PlaceServiceImpl;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/place")
 public class PlaceController {
 
-    private final PlaceService placeService;
+    private final PlaceServiceImpl placeService;
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
