@@ -29,9 +29,9 @@ import hypercell.final_project.football_places_booking_system.repository.Request
 import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
 import hypercell.final_project.football_places_booking_system.repository.TeamRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
-import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -145,10 +145,10 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                     log.warn("Team not found with ID: {}", teamId);
                     return new NotFoundException(ErrorCode.TEAM_NOT_FOUND);
                 });
-                
+
         // 3. Check if the inviter is the team creator or an organizer
-        if (!team.getCreator().getId().equals(invitedById) && 
-            !isOrganizer(invitedById, teamId)) {
+        if (!team.getCreator().getId().equals(invitedById) &&
+                !isOrganizer(invitedById, teamId)) {
             log.warn("User {} is not authorized to invite members to team {}", invitedById, teamId);
             throw new ForbiddenActionException(ErrorCode.FORBIDDEN);
         }
@@ -158,7 +158,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
             log.warn("User {} is already a member of team {}", user.getId(), teamId);
             throw new AlreadyExistsException(ErrorCode.TEAM_MEMBER_ALREADY_PENDING);
         }
-        
+
         // 5. Build the TeamMemberCreationRequest
         TeamMemberCreationRequest req = new TeamMemberCreationRequest(
                 user.getId(), teamId, TeamRole.PLAYER, invitedById
@@ -166,12 +166,12 @@ public class TeamMemberServiceImpl implements TeamMemberService {
 
         // 6. Create team member and save the result
         TeamMemberResponse teamMemberResponse = createTeamMember(req, invitedById);
-        
+
         // 8. Create Request entity for the invitation with meaningful message
-        String invitationMessage = String.format("%s has invited you to join Team %s", 
+        String invitationMessage = String.format("%s has invited you to join Team %s",
                 inviterUser.getUserName(), team.getName());
         requestService.createRequestWithMessage(invitedById, user.getId(), RequestType.JOIN_TEAM_INVITATION, invitationMessage, teamMemberResponse.id());
-        
+
         // 8. Send the invitation email
         log.info("Sending Team invitation email to: {}", email);
         emailService.sendInviteToJoinTeam(inviterUser, user, email, team, teamMemberResponse.id());
@@ -189,29 +189,29 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         if (teamMember.getStatus() != TeamStatus.PENDING) {
             throw new AlreadyExistsException(ErrorCode.TEAM_MEMBER_RESPONSE_ALREADY_EXISTS);
         }
-        
+
         // Set the new status based on the request
         if (request == TeamStatus.APPROVED || request == TeamStatus.REJECTED) {
             teamMember.setStatus(request);
         } else {
             throw new ValidationException(ErrorCode.INVALID_TEAM_STATUS);
         }
-        
+
         // Save the team member
         teamMember = teamMemberRepository.save(teamMember);
-        
+
         // Update the Request entity status with meaningful response message
         ResponseStatus responseStatus = request == TeamStatus.APPROVED ? ResponseStatus.ACCEPTED : ResponseStatus.REJECTED;
-        
+
         // Create meaningful response message
         String responseMessage = String.format("Your invitation to join Team %s has been %s by %s",
                 teamMember.getTeam().getName(),
                 (request == TeamStatus.APPROVED) ? "accepted" : "rejected",
                 teamMember.getUser().getUserName());
-        
+
         // Find and update the request with response message
         Request existingRequest = requestRepository.findByJokerId(teamMemberId);
-        
+
         try {
             requestService.updateRequestStatusWithMessage(existingRequest.getId(), responseStatus, responseMessage);
         } catch (AppException e) {
@@ -223,7 +223,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 throw new RuntimeException(fallbackException);
             }
         }
-        
+
         // Map to response
         TeamMemberInviteResponse response = new TeamMemberInviteResponse(
                 teamMember.getId(),
@@ -259,14 +259,14 @@ public class TeamMemberServiceImpl implements TeamMemberService {
                 .build();
 
         teamMember = teamMemberRepository.save(teamMember);
-        
+
         // Create Request entity for the join request with meaningful message
-        String requestMessage = String.format("%s is asking to join %s", 
+        String requestMessage = String.format("%s is asking to join %s",
                 user.getUserName(), team.getName());
         requestService.createRequestWithMessage(user.getId(), team.getCreator().getId(), RequestType.JOIN_TEAM_REQUEST, requestMessage, teamMember.getId());
-        
+
         emailService.sendRequestToJoinTeam(user, team, teamMember.getId());
-        
+
         return mapToTeamMemberResponse(teamMember);
     }
 
@@ -293,16 +293,16 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         // Accept/Reject
         if (response == TeamStatus.APPROVED || response == TeamStatus.REJECTED) {
             teamMember.setStatus(response);
-            
+
             // Update request entity with response message
             try {
-                ResponseStatus requestStatus = (response == TeamStatus.APPROVED) ? 
+                ResponseStatus requestStatus = (response == TeamStatus.APPROVED) ?
                         ResponseStatus.ACCEPTED : ResponseStatus.REJECTED;
                 String responseMessage = String.format("Your request to join Team %s has been %s by %s",
-                        team.getName(), 
+                        team.getName(),
                         (response == TeamStatus.APPROVED) ? "accepted" : "rejected",
                         organizer.getUserName());
-                
+
                 Request request = requestRepository.findByJokerId(teamMemberId);
 
                 requestService.updateRequestStatusWithMessage(request.getId(), requestStatus, responseMessage);
@@ -323,7 +323,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     public void deleteTeamMember(UUID teamMemberId, UUID requesterId) throws NotFoundException, ValidationException {
         TeamMember teamMember = teamMemberRepository.findById(teamMemberId)
                 .orElseThrow(()->
-                new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
+                        new NotFoundException(ErrorCode.TEAM_MEMBER_NOT_FOUND));
 
         // organizer can remove anyone but member can remove self
         if (!teamMember.getUser().getId().equals(requesterId)) {

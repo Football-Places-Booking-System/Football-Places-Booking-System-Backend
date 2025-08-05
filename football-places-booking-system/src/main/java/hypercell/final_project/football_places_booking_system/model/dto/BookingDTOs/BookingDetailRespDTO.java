@@ -1,6 +1,7 @@
 package hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs;
 
 import hypercell.final_project.football_places_booking_system.model.enums.MatchStatus;
+import hypercell.final_project.football_places_booking_system.model.enums.PlaceType;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ public record BookingDetailRespDTO(
 
         UUID placeId,
         String placeName,
+        PlaceType placeType,
 
         UUID teamId,
         String teamName,

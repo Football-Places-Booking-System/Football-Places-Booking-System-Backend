@@ -1,6 +1,7 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
 import java.net.URI;
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -120,6 +121,22 @@ public class MatchParticipantController {
 
         return ResponseEntity.ok(participants);
     }
+
+    @PostMapping("/join-as-organizer/{matchId}")
+    public ResponseEntity<MatchPartResponseDTO> joinAsOrganizer(
+            @PathVariable UUID matchId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws AppException {
+        User organizer = (User) userDetails;
+
+        var participant = matchParticipantService.joinMatchAsOrganizer(matchId, organizer.getId());
+
+        return new ResponseEntity<>(
+                MatchPartMapper.toResponseDTO(participant),
+                HttpStatus.CREATED
+        );
+    }
+
 
     @GetMapping("/user/matches")
     public ResponseEntity<List<UserMatchResponseDTO>> getMatchesByUserDetails(

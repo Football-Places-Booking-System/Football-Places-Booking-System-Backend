@@ -140,6 +140,7 @@ public class BookingMatchServiceImpl implements BookingMatchService {
 
                 .placeId(match.getPlace().getId())
                 .placeName(match.getPlace().getName())
+                .placeType(match.getPlace().getPlaceType())
 
                 .teamId(match.getTeam().getId())
                 .teamName(match.getTeam().getName())
@@ -184,17 +185,13 @@ public class BookingMatchServiceImpl implements BookingMatchService {
     }
 
     public List<BookingMatch> getAll() {
-        return bookingMatchRepository.findAll();
+        return bookingMatchRepository.findAllWithDetails();
     }
 
-    /**
-     * Get matches for all teams where this user is an ORGANIZER.
-     */
     public List<BookingMatch> getMyMatchesAsOrganizer(UUID userId) throws AppException {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
-        // Get organizer teams
         List<UUID> organizerTeams = teamMemberRepository.findByUserId(userId).stream()
                 .filter(tm -> tm.getRole() == TeamRole.ORGANIZER && tm.getStatus() == TeamStatus.APPROVED)
                 .map(tm -> tm.getTeam().getId())
@@ -204,12 +201,8 @@ public class BookingMatchServiceImpl implements BookingMatchService {
             return List.of();
         }
 
-        // Fetch matches with their place relation already loaded
-
-        // No manual setting needed, mapper will handle place name
-        return bookingMatchRepository.findAll().stream()
+        return bookingMatchRepository.findAllWithDetails().stream()
                 .filter(match -> organizerTeams.contains(match.getTeam().getId()))
                 .toList();
     }
-
 }
