@@ -121,6 +121,22 @@ public class MatchParticipantController {
         return ResponseEntity.ok(participants);
     }
 
+    @PostMapping("/join-as-organizer/{matchId}")
+    public ResponseEntity<MatchPartResponseDTO> joinAsOrganizer(
+            @PathVariable UUID matchId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws AppException {
+        User organizer = (User) userDetails;
+
+        var participant = matchParticipantService.joinMatchAsOrganizer(matchId, organizer.getId());
+
+        return new ResponseEntity<>(
+                MatchPartMapper.toResponseDTO(participant),
+                HttpStatus.CREATED
+        );
+    }
+
+
     @GetMapping("/user/matches")
     public ResponseEntity<List<UserMatchResponseDTO>> getMatchesByUserDetails(
             @AuthenticationPrincipal UserDetails userDetails

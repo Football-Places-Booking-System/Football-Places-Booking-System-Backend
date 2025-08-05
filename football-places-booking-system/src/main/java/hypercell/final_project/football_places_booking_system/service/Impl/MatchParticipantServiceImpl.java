@@ -4,19 +4,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.exception.*;
 import hypercell.final_project.football_places_booking_system.model.db.Request;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.UserMatchResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
-import hypercell.final_project.football_places_booking_system.service.Interfaces.MatchParticipantService;
-import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
-import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.*;
 import org.springframework.stereotype.Service;
 
-import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
-import hypercell.final_project.football_places_booking_system.exception.AppException;
-import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
-import hypercell.final_project.football_places_booking_system.exception.ValidationException;
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
 import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
 import hypercell.final_project.football_places_booking_system.model.db.User;
@@ -35,6 +30,7 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
 
     private final MatchParticipantRepository matchParticipantRepository;
     private final UserRepository userRepository;
+    private final TeamMemberService teamMemberService;
     private final BookingMatchServiceImpl bookingMatchService;
     private final EmailService emailService;
     private final RequestService requestService;
@@ -173,22 +169,27 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
     public MatchParticipant joinMatchAsOrganizer(UUID bookingMatchId, UUID organizerId) throws AppException {
         BookingMatch match = validateBookingMatch(bookingMatchId);
 
-        if (!match.getUser().getId().equals(organizerId)) {
-            throw new ValidationException(ErrorCode.FORBIDDEN);
+        // ✅ Allow any organizer of the team to join, not just match creator
+        if (!teamMemberService.isOrganizer(organizerId, match.getTeam().getId())) {
+            throw new ForbiddenActionException(ErrorCode.FORBIDDEN);
         }
 
         ensureNotParticipant(match.getId(), organizerId);
         validateCapacity(match);
 
+        var organizer = userRepository.findById(organizerId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+
         return matchParticipantRepository.save(
                 MatchParticipant.builder()
                         .bookingMatch(match)
-                        .user(match.getUser())
+                        .user(organizer) // ✅ Use the actual joining organizer, not match.getUser()
                         .status(ParticipantStatus.ACCEPTED)
                         .respondedAt(LocalDateTime.now())
                         .build()
         );
     }
+
 
     // Get all participants for a match
     public List<MatchParticipant> getByMatch(UUID matchId) throws AppException {

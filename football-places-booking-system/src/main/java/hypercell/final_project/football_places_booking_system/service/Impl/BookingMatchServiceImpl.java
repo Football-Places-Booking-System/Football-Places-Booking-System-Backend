@@ -140,6 +140,7 @@ public class BookingMatchServiceImpl implements BookingMatchService {
 
                 .placeId(match.getPlace().getId())
                 .placeName(match.getPlace().getName())
+                .placeType(match.getPlace().getPlaceType())
 
                 .teamId(match.getTeam().getId())
                 .teamName(match.getTeam().getName())
