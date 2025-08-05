@@ -15,6 +15,7 @@ public interface UserService {
     public void register(UserDTO userDTO) throws AppException;
     public UserDTO getUserById(UUID id) throws AppException;
     public Page<UserDTO> filterUsers(String email, UserRole role, UserStatus status, String username, Pageable pageable) throws AppException;
+    public Page<UserDTO> filterUsersSorted(String email, UserRole role, UserStatus status, String username, int page, int size, String sortBy, String sortDirection) throws AppException;
     public ResponseEntity<ResponseDTO> updateUser(UUID id, UserDTO userDTO) throws AppException;
     public ResponseEntity<ResponseDTO> deleteUser(UUID id) throws AppException;
 }
