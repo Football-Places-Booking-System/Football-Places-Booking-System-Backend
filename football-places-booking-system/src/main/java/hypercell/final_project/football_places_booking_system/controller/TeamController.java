@@ -46,11 +46,13 @@ public class TeamController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/{id}")
     public TeamResponse getTeam(@PathVariable UUID id) throws AppException {
         return teamService.getTeamById(id);
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/all-filtered")
     public Page<TeamResponse> filterTeams(
             @RequestParam(required = false) String name,
@@ -61,12 +63,14 @@ public class TeamController {
         Pageable pageable = PageRequest.of(page, size);
         return teamService.filterTeams(name, description, pageable);
     }
+
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/all")
     public List<TeamResponse> getAllTeams() throws AppException {
         return teamService.getAllTeams();
     }
     
-    @PreAuthorize("@authService.hasTeamRole(#id, 'ORGANIZER')")
+    @PreAuthorize("@authService.is('ACTIVE') and @authService.hasTeamRole(#id, 'ORGANIZER')")
     @PatchMapping("/{id}")
     public ResponseEntity<TeamResponse> updateTeam( 
             @PathVariable UUID id,
@@ -75,13 +79,14 @@ public class TeamController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("@authService.hasTeamRole(#id, 'ORGANIZER')")
+    @PreAuthorize("@authService.is('ACTIVE') and @authService.hasTeamRole(#id, 'ORGANIZER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseDTO> deleteTeam(
             @PathVariable UUID id) throws AppException {
         return teamService.deleteTeam(id);
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/my-teams")
     public ResponseEntity<Page<TeamResponse>> getUserTeams(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -92,6 +97,7 @@ public class TeamController {
         return ResponseEntity.ok(teamService.getTeamsByUser(user.getId(), page, size));
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/other-teams")
     public ResponseEntity<Page<TeamResponse>> getOtherTeams(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -102,6 +108,7 @@ public class TeamController {
         return ResponseEntity.ok(teamService.getOtherTeams(user.getId(), page, size));
     }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/isOrganizer/{teamId}")
     public ResponseEntity<Boolean> getTeamMember(
             @PathVariable UUID teamId,
@@ -111,5 +118,4 @@ public class TeamController {
         boolean isOrganizer = teamMemberService.isOrganizer(user.getId(), teamId);
         return ResponseEntity.ok(isOrganizer);
     }
-
 }

@@ -21,11 +21,6 @@ import lombok.RequiredArgsConstructor;
 public class RequestController {
     private final RequestService requestService;
     
-    // @GetMapping("/received/{receiverId}")
-    // public List<Request> getReceivedRequests(@PathVariable UUID receiverId) throws AppException {
-    //     return requestService.getRequestsByReceiver(receiverId);
-    // }
-
     @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/received")
     public List<RequestDTO> getReceivedRequests(@AuthenticationPrincipal UserDetails userDetails) throws AppException {

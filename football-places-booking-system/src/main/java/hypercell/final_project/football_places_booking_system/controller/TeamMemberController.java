@@ -157,7 +157,7 @@ public class TeamMemberController {
         return ResponseEntity.ok(teamMemberService.getPendingJoinRequests(teamId));
     }
 
-    @PreAuthorize("@authService.is('ACTIVE')")
+    @PreAuthorize("@authService.is('ACTIVE') and @authService.hasTeamRole(#teamId, 'ORGANIZER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTeamMember(
             @PathVariable UUID id,
