@@ -1,5 +1,6 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -72,33 +72,27 @@ public class MatchParticipantController {
         return new ResponseEntity<>(MatchPartMapper.toResponseDTO(participant), HttpStatus.CREATED);
     }
 
-    /**
-     * Respond to invitation (Accept or Decline).
-     */
-//    @PutMapping("/respond/{id}")
-    @PatchMapping("/respond/{matchParticipantId}")
-    public ResponseEntity<MatchPartResponseDTO> respond(
+    // Endpoint to accept or reject invitation via frontend
+    @GetMapping("/respond/{matchParticipantId}")
+    public void respond(
             @PathVariable UUID matchParticipantId,
             @RequestParam ParticipantStatus status
     ) throws AppException {
-        var participant = matchParticipantService.respondToInvitation(matchParticipantId, status);
-        return ResponseEntity.ok(MatchPartMapper.toResponseDTO(participant));
+        matchParticipantService.respondToInvitation(matchParticipantId, status);
     }
 
-//     /**
-//      * Respond to invitation (Accept or Decline).
-//      */
-//     @GetMapping("/respond-mail/{id}")
-//     public ResponseEntity<Void> respondMail(
-//             @PathVariable UUID id,
-//             @RequestParam ParticipantStatus status
-//     ) throws AppException {
-//         matchParticipantService.respondToInvitation(id, status);
-//         return ResponseEntity.status(HttpStatus.FOUND)
-//                 .location(URI.create("http://localhost:4200/"))
-//                 .build();
-//     }
-
+    // Endpoint to accept or reject invitation via mail
+    @GetMapping("/respond-mail/{id}")
+    public ResponseEntity<Void> respondMail(
+            @PathVariable UUID id,
+            @RequestParam ParticipantStatus status
+    ) throws AppException {
+        matchParticipantService.respondToInvitation(id, status);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                // change url
+                .location(URI.create("http://localhost:4200/dashboard/matches"))
+                .build();
+    }
 
     /**
      *   Get participants for a match.
@@ -146,6 +140,4 @@ public class MatchParticipantController {
         var matches = matchParticipantService.getUserParticipatedMatchesDetailed(currentUser.getId());
         return ResponseEntity.ok(matches);
     }
-
-
 }
