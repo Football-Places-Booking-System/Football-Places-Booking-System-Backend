@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
-import hypercell.final_project.football_places_booking_system.service.CustomUserDetailsService;
-import hypercell.final_project.football_places_booking_system.service.JwtService;
+import hypercell.final_project.football_places_booking_system.service.Impl.CustomUserDetailsServiceImpl;
+import hypercell.final_project.football_places_booking_system.service.Impl.JwtServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,8 +24,8 @@ import lombok.RequiredArgsConstructor;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
-    private final CustomUserDetailsService userDetailsService;
+    private final JwtServiceImpl jwtService;
+    private final CustomUserDetailsServiceImpl userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

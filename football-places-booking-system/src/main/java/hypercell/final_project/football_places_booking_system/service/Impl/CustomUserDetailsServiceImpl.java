@@ -1,5 +1,6 @@
-package hypercell.final_project.football_places_booking_system.service;
+package hypercell.final_project.football_places_booking_system.service.Impl;
 
+import hypercell.final_project.football_places_booking_system.service.Interfaces.CustomUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -11,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
-public class CustomUserDetailsService implements UserDetailsService {
+public class CustomUserDetailsServiceImpl implements UserDetailsService, CustomUserDetailsService {
 
     private final UserRepository userRepository;
 

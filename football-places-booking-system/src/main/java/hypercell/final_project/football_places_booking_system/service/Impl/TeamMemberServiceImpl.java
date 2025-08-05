@@ -31,6 +31,7 @@ import hypercell.final_project.football_places_booking_system.repository.TeamRep
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,7 +43,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
     private final TeamServiceImpl teamService;
-    private final EmailServiceImpl emailService;
+    private final EmailService emailService;
     private final RequestService requestService;
     private final RequestRepository requestRepository;
 

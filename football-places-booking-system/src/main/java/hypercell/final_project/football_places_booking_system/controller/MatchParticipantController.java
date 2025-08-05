@@ -4,6 +4,11 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper;
+import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingResponseDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.UserMatchResponseDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,9 +32,9 @@ import hypercell.final_project.football_places_booking_system.model.dto.MatchPar
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
-import hypercell.final_project.football_places_booking_system.service.BookingMatchService;
+import hypercell.final_project.football_places_booking_system.service.Impl.BookingMatchServiceImpl;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
-import hypercell.final_project.football_places_booking_system.service.MatchParticipantService;
+import hypercell.final_project.football_places_booking_system.service.Impl.MatchParticipantServiceImpl;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -37,9 +42,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MatchParticipantController {
 
-    private final MatchParticipantService matchParticipantService;
+    private final MatchParticipantServiceImpl matchParticipantService;
     private final TeamMemberService teamMemberService;
-    private final BookingMatchService bookingMatchService;
+    private final BookingMatchServiceImpl bookingMatchService;
 
     /**
      * Invite a user to participate in a match.
@@ -117,15 +122,12 @@ public class MatchParticipantController {
     }
 
     @GetMapping("/user/matches")
-    public ResponseEntity<List<BookingResponseDTO>> getMatchesByUserDetails(
+    public ResponseEntity<List<UserMatchResponseDTO>> getMatchesByUserDetails(
             @AuthenticationPrincipal UserDetails userDetails
     ) throws AppException {
         User currentUser = (User) userDetails;
 
-        var matches = matchParticipantService.getUserParticipatedMatches(currentUser.getId())
-                .stream()
-                .map(BookingMapper::toResponseDTO)
-                .toList();
+        var matches = matchParticipantService.getUserParticipatedMatches(currentUser.getId());
 
         return ResponseEntity.ok(matches);
     }
