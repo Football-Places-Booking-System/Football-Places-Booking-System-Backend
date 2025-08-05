@@ -1,5 +1,6 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
+import hypercell.final_project.football_places_booking_system.model.enums.UserStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -49,6 +50,11 @@ public class AuthenticationController {
             Authentication auth = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(request.email(), request.password()));
             User user = (User) auth.getPrincipal();
+
+            // Get us
+            if(user.getStatus() == UserStatus.INACTIVE){
+                throw new InvalidCredentialsException(ErrorCode.USER_INACTIVE);
+            }
             
             String token = jwtService.generateToken(user);
 

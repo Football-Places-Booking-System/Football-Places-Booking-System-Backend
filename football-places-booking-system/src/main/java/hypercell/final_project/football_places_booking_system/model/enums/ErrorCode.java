@@ -13,6 +13,7 @@ public enum ErrorCode {
     INVALID_USER_STATUS(205, "User status is invalid"),
     USER_ALREADY_EXISTS(206, "User already exists"),
     USER_NOT_FOUND(207, "User not found"),
+    USER_INACTIVE(208, "User is inactive"),
 
     // ===== Team Errors =====
     INVALID_TEAM_ID(300, "Team ID is either empty or null"),
