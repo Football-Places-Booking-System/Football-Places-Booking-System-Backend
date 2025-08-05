@@ -171,10 +171,6 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
 
         // Update the Request entity status
         ResponseStatus responseStatus = status == ParticipantStatus.ACCEPTED ? ResponseStatus.ACCEPTED : ResponseStatus.REJECTED;
-        
-        // Find the request by sender (match organizer) and receiver (participant) and type
-        UUID senderId = participant.getBookingMatch().getUser().getId(); // The match organizer
-        UUID receiverId = participant.getUser().getId(); // The participant
 
         // Find and update the request
         Request existingRequest = requestRepository.findByJokerId(participantId);
