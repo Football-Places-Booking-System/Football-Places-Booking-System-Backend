@@ -8,7 +8,6 @@ import hypercell.final_project.football_places_booking_system.model.db.Request;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.UserMatchResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.MatchParticipantService;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.RequestService;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.EmailService;
@@ -23,7 +22,6 @@ import hypercell.final_project.football_places_booking_system.model.db.MatchPart
 import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
-import hypercell.final_project.football_places_booking_system.model.enums.PlaceType;
 import hypercell.final_project.football_places_booking_system.model.enums.RequestType;
 import hypercell.final_project.football_places_booking_system.model.enums.ResponseStatus;
 import hypercell.final_project.football_places_booking_system.repository.MatchParticipantRepository;
@@ -199,7 +197,7 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
             throw new ValidationException(ErrorCode.INVALID_BOOKING_MATCH_ID);
         }
 
-        // Validate existence using service (this will throw proper exception if not found)
+        // Validate existence using service (this will throw a proper exception if not found)
         bookingMatchService.getById(matchId);
 
         return matchParticipantRepository.findByBookingMatchId(matchId);
@@ -242,10 +240,10 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
         // Fetch all participant entries for this user
-        List<MatchParticipant> participations = matchParticipantRepository.findByUserId(userId);
+        List<MatchParticipant> participatedMatches = matchParticipantRepository.findByUserId(userId);
 
         // Map to detailed response DTO
-        return participations.stream()
+        return participatedMatches.stream()
                 .map(mp -> {
                     BookingMatch match = mp.getBookingMatch();
                     return BookingDetailRespDTO.builder()
