@@ -3,6 +3,7 @@ package hypercell.final_project.football_places_booking_system.controller;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingResponseDTO;
@@ -84,6 +85,18 @@ public class MatchParticipantController {
         var participant = matchParticipantService.respondToInvitation(matchParticipantId, status);
         return ResponseEntity.ok(MatchPartMapper.toResponseDTO(participant));
     }
+
+    @PostMapping("/join-as-organizer/{bookingMatchId}")
+    public ResponseEntity<MatchPartResponseDTO> joinMatchAsOrganizer(
+            @PathVariable UUID bookingMatchId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws AppException {
+
+        User organizer = (User) userDetails;
+        MatchParticipant participant = matchParticipantService.joinMatchAsOrganizer(bookingMatchId, organizer.getId());
+        return ResponseEntity.ok(MatchPartMapper.toResponseDTO(participant));
+    }
+
 
 //     /**
 //      * Respond to invitation (Accept or Decline).
