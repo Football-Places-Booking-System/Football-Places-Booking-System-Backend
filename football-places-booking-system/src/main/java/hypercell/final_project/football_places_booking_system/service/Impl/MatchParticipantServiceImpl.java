@@ -86,11 +86,24 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
         String senderName = match.getUser().getUserName();
         String placeName = match.getPlace().getName();
         String teamName = match.getTeam().getName();
-        String startTime = match.getStartTime().toString();
-        String endTime = match.getEndTime().toString();
         
-        String invitationMessage = String.format("%s has invited you to join match at %s with team %s from %s to %s", 
-            senderName, placeName, teamName, startTime, endTime);
+        // Format date and time for better readability
+        String matchDate = match.getStartTime().toLocalDate().toString();
+        
+        // Format start time
+        int startHour = match.getStartTime().getHour();
+        String startAmPm = startHour >= 12 ? "pm" : "am";
+        int startDisplayHour = startHour == 0 ? 12 : (startHour > 12 ? startHour - 12 : startHour);
+        String startTime = String.format("%d %s", startDisplayHour, startAmPm);
+        
+        // Format end time
+        int endHour = match.getEndTime().getHour();
+        String endAmPm = endHour >= 12 ? "pm" : "am";
+        int endDisplayHour = endHour == 0 ? 12 : (endHour > 12 ? endHour - 12 : endHour);
+        String endTime = String.format("%d %s", endDisplayHour, endAmPm);
+        
+        String invitationMessage = String.format("%s has invited you to join match at %s with team %s at %s from %s to %s", 
+            senderName, placeName, teamName, matchDate, startTime, endTime);
         
         requestService.createRequestWithMessage(senderId, receiverId, RequestType.MATCH_INVITATION, invitationMessage, matchParticipant.getId());
 
