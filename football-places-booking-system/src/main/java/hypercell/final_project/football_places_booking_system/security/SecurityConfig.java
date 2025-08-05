@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/team-members/respond-mail/**").permitAll()
                 .requestMatchers("/api/team-members/join-request/respond-mail/**").permitAll()
                 .requestMatchers("/api/match-participants/respond-mail/**").permitAll()
+                .requestMatchers("/ws/**").permitAll() 
                 .anyRequest().authenticated()
             )
             .exceptionHandling(eh -> eh
