@@ -37,7 +37,7 @@ public class TeamController {
     private final TeamService teamService;
     private final TeamMemberService teamMemberService;
 
-
+    @PreAuthorize("@authService.is('ACTIVE')")
     @PostMapping
     public ResponseEntity<TeamResponse> createTeam(
             @RequestBody TeamCreationRequest request,

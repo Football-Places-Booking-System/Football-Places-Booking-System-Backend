@@ -2,6 +2,7 @@ package hypercell.final_project.football_places_booking_system.controller;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +26,7 @@ public class RequestController {
     //     return requestService.getRequestsByReceiver(receiverId);
     // }
 
+    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/received")
     public List<RequestDTO> getReceivedRequests(@AuthenticationPrincipal UserDetails userDetails) throws AppException {
         User user = (User) userDetails;

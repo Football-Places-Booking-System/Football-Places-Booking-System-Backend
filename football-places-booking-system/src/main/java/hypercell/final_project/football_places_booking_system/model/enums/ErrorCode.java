@@ -13,7 +13,7 @@ public enum ErrorCode {
     INVALID_USER_STATUS(205, "User status is invalid"),
     USER_ALREADY_EXISTS(206, "User already exists"),
     USER_NOT_FOUND(207, "User not found"),
-    USER_INACTIVE(208, "User is inactive"),
+    FORBIDDEN_STATUS(208, "Inactive user"),
 
     // ===== Team Errors =====
     INVALID_TEAM_ID(300, "Team ID is either empty or null"),
@@ -21,6 +21,7 @@ public enum ErrorCode {
     INVALID_TEAM_DESCRIPTION(302, "Team description is either empty or null"),
     TEAM_NOT_FOUND(303, "Team not found"),
     TEAM_ALREADY_EXISTS(304, "Team already exists"),
+    FORBIDDEN_ROLE(305, "Must be an organizer"),
 
     // ===== Team Member Errors =====
     INVALID_TEAM_MEMBER_ROLE(400, "Team member role is invalid"),
