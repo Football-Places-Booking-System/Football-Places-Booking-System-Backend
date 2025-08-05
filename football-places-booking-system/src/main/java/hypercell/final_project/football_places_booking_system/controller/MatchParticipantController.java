@@ -13,7 +13,6 @@ import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,7 +53,6 @@ public class MatchParticipantController {
      * Only ORGANIZERs in the team can send invitations.
      */
     @PreAuthorize("@authService.is('ACTIVE')")
-    @PreAuthorize("@authService.is('ACTIVE')")
     @PostMapping("/invite/{bookingMatchId}")
     public ResponseEntity<MatchPartResponseDTO> invite(
             @PathVariable UUID bookingMatchId,
@@ -71,7 +69,6 @@ public class MatchParticipantController {
         // Check if inviter is organizer
         if (!teamMemberService.isOrganizer(inviter.getId(), teamId)) {
             throw new ForbiddenActionException(ErrorCode.FORBIDDEN_ROLE);
-            throw new ForbiddenActionException(ErrorCode.FORBIDDEN_ROLE);
         }
 
         var participant = matchParticipantService.inviteParticipant(dto, bookingMatchId);
@@ -79,7 +76,6 @@ public class MatchParticipantController {
     }
 
     // Endpoint to accept or reject invitation via frontend
-    @PreAuthorize("@authService.is('ACTIVE')")
     @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/respond/{matchParticipantId}")
     public void respond(
@@ -108,7 +104,6 @@ public class MatchParticipantController {
      * - If the requester is an ORGANIZER -> show all participants and statuses.
      */
     @PreAuthorize("@authService.is('ACTIVE')")
-    @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/match/{matchId}")
     public ResponseEntity<List<MatchPartResponseDTO>> getByMatch(
             @PathVariable UUID matchId,
@@ -131,21 +126,6 @@ public class MatchParticipantController {
         return ResponseEntity.ok(participants);
     }
 
-    @PostMapping("/join-as-organizer/{matchId}")
-    public ResponseEntity<MatchPartResponseDTO> joinAsOrganizer(
-            @PathVariable UUID matchId,
-            @AuthenticationPrincipal UserDetails userDetails
-    ) throws AppException {
-        User organizer = (User) userDetails;
-
-        var participant = matchParticipantService.joinMatchAsOrganizer(matchId, organizer.getId());
-
-        return new ResponseEntity<>(
-                MatchPartMapper.toResponseDTO(participant),
-                HttpStatus.CREATED
-        );
-    }
-
     @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/user/matches")
     public ResponseEntity<List<UserMatchResponseDTO>> getMatchesByUserDetails(
@@ -158,7 +138,6 @@ public class MatchParticipantController {
         return ResponseEntity.ok(matches);
     }
 
-    @PreAuthorize("@authService.is('ACTIVE')")
     @PreAuthorize("@authService.is('ACTIVE')")
     @GetMapping("/user/matches/details")
     public ResponseEntity<List<BookingDetailRespDTO>> getUserMatchesDetailed(
