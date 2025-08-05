@@ -142,6 +142,7 @@
 
 
 	<build>
+		<finalName>footballSystem</finalName>
 		<plugins>
         <!-- change userName and password to your database -->
 			<!-- <plugin>
