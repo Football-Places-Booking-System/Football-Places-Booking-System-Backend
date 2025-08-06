@@ -1,18 +1,13 @@
 package hypercell.final_project.football_places_booking_system.controller;
 
 import java.net.URI;
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
-import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
-import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper;
-import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingResponseDTO;
-import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.UserMatchResponseDTO;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,24 +22,25 @@ import org.springframework.web.bind.annotation.RestController;
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.exception.ForbiddenActionException;
 import hypercell.final_project.football_places_booking_system.model.db.User;
+import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
-import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper;
-import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartMapper;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartResponseDTO;
+import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.UserMatchResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
 import hypercell.final_project.football_places_booking_system.service.Impl.BookingMatchServiceImpl;
-import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
 import hypercell.final_project.football_places_booking_system.service.Impl.MatchParticipantServiceImpl;
+import hypercell.final_project.football_places_booking_system.service.Interfaces.TeamMemberService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/match-participants")
 @RequiredArgsConstructor
 public class MatchParticipantController {
-
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
     private final MatchParticipantServiceImpl matchParticipantService;
     private final TeamMemberService teamMemberService;
     private final BookingMatchServiceImpl bookingMatchService;
@@ -73,6 +69,9 @@ public class MatchParticipantController {
         }
 
         var participant = matchParticipantService.inviteParticipant(dto, bookingMatchId);
+
+        messagingTemplate.convertAndSend("/topic/notification/" + participant.getUser().getId(), (Object) null);
+
         return new ResponseEntity<>(MatchPartMapper.toResponseDTO(participant), HttpStatus.CREATED);
     }
 
@@ -92,7 +91,10 @@ public class MatchParticipantController {
             @PathVariable UUID id,
             @RequestParam ParticipantStatus status
     ) throws AppException {
-        matchParticipantService.respondToInvitation(id, status);
+        var participant = matchParticipantService.respondToInvitation(id, status);
+
+        messagingTemplate.convertAndSend("/topic/notification/" + participant.getUser().getId(), (Object) null);
+
         return ResponseEntity.status(HttpStatus.FOUND)
                 // change url
                 .location(URI.create("http://localhost:4200/dashboard/matches"))

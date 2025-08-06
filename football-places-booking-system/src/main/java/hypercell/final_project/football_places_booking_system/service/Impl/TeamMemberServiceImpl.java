@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.exception.AlreadyExistsException;
@@ -39,6 +41,8 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 @Service
 public class TeamMemberServiceImpl implements TeamMemberService {
+    @Autowired
+    private final SimpMessagingTemplate messagingTemplate;
     private final TeamMemberRepository teamMemberRepository;
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
@@ -47,6 +51,10 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     private final RequestService requestService;
     private final RequestRepository requestRepository;
 
+    @Override
+    public void realTimeNotify(UUID receiverId) {
+        messagingTemplate.convertAndSend("/topic/notification/" + receiverId, (Object) null);
+    }
 
     @Override
     public TeamMemberResponse createTeamMember(TeamMemberCreationRequest request, UUID creatorid) throws NotFoundException {
@@ -267,6 +275,8 @@ public class TeamMemberServiceImpl implements TeamMemberService {
 
         emailService.sendRequestToJoinTeam(user, team, teamMember.getId());
 
+        realTimeNotify(team.getCreator().getId());
+
         return mapToTeamMemberResponse(teamMember);
     }
 
@@ -316,6 +326,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         }
 
         teamMemberRepository.save(teamMember);
+
         return mapToTeamMemberResponse(teamMember);
     }
 
