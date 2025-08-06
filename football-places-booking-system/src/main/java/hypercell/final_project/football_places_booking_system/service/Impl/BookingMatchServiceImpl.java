@@ -4,8 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
-import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
+import hypercell.final_project.football_places_booking_system.model.enums.*;
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.exception.AppException;
@@ -14,9 +15,6 @@ import hypercell.final_project.football_places_booking_system.exception.NotFound
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDTO;
-import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
-import hypercell.final_project.football_places_booking_system.model.enums.MatchStatus;
-import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
 import hypercell.final_project.football_places_booking_system.repository.BookingMatchRepository;
 import hypercell.final_project.football_places_booking_system.repository.PlaceRepository;
 import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
@@ -92,6 +90,7 @@ public class BookingMatchServiceImpl implements BookingMatchService {
         return bookingMatchRepository.save(match);
     }
 
+
     public void confirmBooking(UUID matchId, UUID userId) throws AppException {
         if (matchId == null) {
             throw new ValidationException(ErrorCode.INVALID_BOOKING_MATCH_ID);
@@ -99,14 +98,14 @@ public class BookingMatchServiceImpl implements BookingMatchService {
 
         BookingMatch match = getById(matchId);
 
-        if (!teamMemberService.isOrganizer(userId, match.getTeam().getId())) {
+//        get user from user id
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+
+        if ( user.getRole() != UserRole.ADMIN ) {
             throw new ForbiddenActionException(ErrorCode.FORBIDDEN);
         }
 
-        // Policy: Cannot cancel if less than 3 hours before start
-        if (match.getStartTime().isBefore(LocalDateTime.now().plusHours(3))) {
-            throw new ForbiddenActionException(ErrorCode.MATCH_CANNOT_BE_CANCELLED_NOW);
-        }
 
         match.setStatus(MatchStatus.CONFIRMED);
         bookingMatchRepository.save(match);
@@ -120,13 +119,23 @@ public class BookingMatchServiceImpl implements BookingMatchService {
 
         BookingMatch match = getById(matchId);
 
-        if (!teamMemberService.isOrganizer(userId, match.getTeam().getId())) {
+        //        get user from user id
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+
+
+        boolean isOrganizer = teamMemberService.isOrganizer(userId, match.getTeam().getId());
+
+        boolean isAdmin = user.getRole() == UserRole.ADMIN;
+
+        if ( !isOrganizer && !isAdmin  ) {
             throw new ForbiddenActionException(ErrorCode.FORBIDDEN);
         }
 
+
         // Policy: Cannot cancel if less than 3 hours before start
         if (match.getStartTime().isBefore(LocalDateTime.now().plusHours(3))) {
-            throw new ForbiddenActionException(ErrorCode.MATCH_CANNOT_BE_CANCELLED_NOW);
+            throw new ValidationException(ErrorCode.MATCH_CANNOT_BE_CANCELLED_NOW);
         }
 
         match.setStatus(MatchStatus.CANCELLED);

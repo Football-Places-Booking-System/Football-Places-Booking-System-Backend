@@ -58,26 +58,32 @@ public class BookingMatchController {
         return new ResponseEntity<>(toResponseDTO(created), HttpStatus.CREATED);
     }
 
-    @PreAuthorize("@authService.is('ACTIVE')")
+    @PreAuthorize("@authService.is('ACTIVE') and hasRole('ADMIN')")
+//    @PreAuthorize("@authService.is('ACTIVE')")
     @PatchMapping("/confirm/{id}")
-    public ResponseEntity<String> confirm(
+    public ResponseEntity<Void> confirm(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails
     ) throws AppException {
         User currentUser = (User) userDetails;
         bookingMatchService.confirmBooking(id, currentUser.getId());
-        return ResponseEntity.ok("Match confirmed");
+        return ResponseEntity.status(HttpStatus.OK)
+                .build();
+//        return void
+//        return ResponseEntity.ok("Match confirmed");
     }
 
-    @PreAuthorize("@authService.is('ACTIVE')")
+    @PreAuthorize("@authService.is('ACTIVE') and (@authService.hasTeamRole(#teamId, 'ORGANIZER') or hasRole('ADMIN'))")
+//    @PreAuthorize("@authService.is('ACTIVE')")
     @PatchMapping("/cancel/{id}")
-    public ResponseEntity<String> cancel(
+    public ResponseEntity<Void> cancel(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails
     ) throws AppException {
         User currentUser = (User) userDetails;
         bookingMatchService.cancelBooking(id, currentUser.getId());
-        return ResponseEntity.ok("Match cancelled");
+        return ResponseEntity.status(HttpStatus.OK)
+                .build();
     }
 
     @PreAuthorize("@authService.is('ACTIVE')")
