@@ -208,6 +208,10 @@ public class BookingMatchServiceImpl implements BookingMatchService {
         return bookingMatchRepository.findAllWithDetails();
     }
 
+    public BookingMatch save(BookingMatch match) {
+        return bookingMatchRepository.save(match);
+    }
+
     public List<BookingMatch> getMyMatchesAsOrganizer(UUID userId) throws AppException {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));

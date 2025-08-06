@@ -9,16 +9,13 @@ import hypercell.final_project.football_places_booking_system.model.db.Request;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.UserMatchResponseDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
+import hypercell.final_project.football_places_booking_system.model.enums.*;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.*;
 import org.springframework.stereotype.Service;
 
 import hypercell.final_project.football_places_booking_system.model.db.BookingMatch;
 import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
 import hypercell.final_project.football_places_booking_system.model.db.User;
-import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
-import hypercell.final_project.football_places_booking_system.model.enums.ParticipantStatus;
-import hypercell.final_project.football_places_booking_system.model.enums.RequestType;
-import hypercell.final_project.football_places_booking_system.model.enums.ResponseStatus;
 import hypercell.final_project.football_places_booking_system.repository.MatchParticipantRepository;
 import hypercell.final_project.football_places_booking_system.repository.RequestRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
@@ -71,6 +68,26 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
             throw new ValidationException(ErrorCode.MATCH_CAPACITY_EXCEEDED);
         }
     }
+
+    private void updateMatchStatusIfFull(BookingMatch match) throws AppException {
+        int maxCapacity = switch (match.getPlace().getPlaceType()) {
+            case FIVE -> 10;
+            case SEVEN -> 14;
+            case ELEVEN -> 22;
+        };
+
+        long acceptedCount = matchParticipantRepository.findByBookingMatchId(match.getId())
+                .stream()
+                .filter(p -> p.getStatus() == ParticipantStatus.ACCEPTED)
+                .count();
+
+        if (acceptedCount >= maxCapacity && match.getStatus() == MatchStatus.PENDING_PLAYERS) {
+            match.setStatus(MatchStatus.PENDING_PAYMENT);
+            bookingMatchService.getById(match.getId()); // ensure match exists
+            bookingMatchService.save(match); // you might need a save method or repo
+        }
+    }
+
 
     private void ensureNotParticipant(UUID matchId, UUID userId) throws AppException {
         boolean alreadyParticipant = matchParticipantRepository
@@ -148,6 +165,7 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
         participant.setStatus(status);
         participant.setRespondedAt(LocalDateTime.now());
 
+        // Update request notification
         Request existingRequest = requestRepository.findByJokerId(participantId);
         String responseMsg = String.format("%s has %s the match invitation",
                 participant.getUser().getUserName(),
@@ -157,8 +175,18 @@ public class MatchParticipantServiceImpl implements MatchParticipantService {
                 status == ParticipantStatus.ACCEPTED ? ResponseStatus.ACCEPTED : ResponseStatus.REJECTED,
                 responseMsg);
 
+        // ✅ Save participant
+        MatchParticipant savedParticipant = matchParticipantRepository.save(participant);
+
+        // ✅ Check and update match status
+        updateMatchStatusIfFull(savedParticipant.getBookingMatch());
+
         emailService.sendResponseToMatchParticipantInvitation(participant, status);
-        return matchParticipantRepository.save(participant);
+        return savedParticipant;
+    }
+
+    public BookingMatch save(BookingMatch match) {
+        return bookingMatchService.save(match);
     }
 
     // ==============================
