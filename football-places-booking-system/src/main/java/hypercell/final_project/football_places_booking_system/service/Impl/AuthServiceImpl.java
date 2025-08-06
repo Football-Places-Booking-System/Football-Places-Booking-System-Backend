@@ -8,11 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
-import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
-import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.model.enums.UserStatus;
+import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
 import hypercell.final_project.football_places_booking_system.service.Interfaces.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -40,9 +40,13 @@ public class AuthServiceImpl implements AuthService {
 
         TeamRole role = TeamRole.valueOf(expectedRole);
 
+        if (teamMemberRepository.existsByUserIdAndTeamIdAndRole(user.getId(), teamId, role)) {
+            return true;
+        }
+
         getCurrentRequest().setAttribute("ERROR", "NOT_ORGANIZER");
         
-        return (teamMemberRepository.existsByUserIdAndTeamIdAndRole(user.getId(), teamId, role));
+        return false;
     }
 
     @Override
@@ -55,8 +59,12 @@ public class AuthServiceImpl implements AuthService {
             
         User user = (User) authentication.getPrincipal();
 
+        if (user.getStatus() == UserStatus.valueOf(status)) {
+            return true;
+        }
+
         getCurrentRequest().setAttribute("ERROR", "NOT_ACTIVE");
 
-        return (user.getStatus() == UserStatus.valueOf(status));
+        return false;
     }
 }

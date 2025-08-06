@@ -26,22 +26,31 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
         String reason = (String) request.getAttribute("ERROR");
 
-        switch (reason) {
-            case "NOT_ORGANIZER" -> response.getWriter().write(
-                        String.format("{\"code\":%d,\"msg\":\"%s\"}",
-                                ErrorCode.FORBIDDEN_ROLE.getCode(),
-                                ErrorCode.FORBIDDEN_ROLE.getMsg())
+        if (reason == null) {
+                response.getWriter().write(
+                    String.format("{\"code\":%d,\"msg\":\"%s\"}",
+                        ErrorCode.FORBIDDEN.getCode(),
+                        ErrorCode.FORBIDDEN.getMsg())
                 );
-            case "NOT_ACTIVE" -> response.getWriter().write(
-                        String.format("{\"code\":%d,\"msg\":\"%s\"}",
-                                ErrorCode.FORBIDDEN_STATUS.getCode(),
-                                ErrorCode.FORBIDDEN_STATUS.getMsg())
-                );
-            default -> response.getWriter().write(
-                        String.format("{\"code\":%d,\"msg\":\"%s\"}",
-                                ErrorCode.FORBIDDEN.getCode(),
-                                ErrorCode.FORBIDDEN.getMsg())
-                );
+        }
+        else {
+            switch (reason) {
+                case "NOT_ORGANIZER" -> response.getWriter().write(
+                            String.format("{\"code\":%d,\"msg\":\"%s\"}",
+                                    ErrorCode.FORBIDDEN_ROLE.getCode(),
+                                    ErrorCode.FORBIDDEN_ROLE.getMsg())
+                    );
+                case "NOT_ACTIVE" -> response.getWriter().write(
+                            String.format("{\"code\":%d,\"msg\":\"%s\"}",
+                                    ErrorCode.FORBIDDEN_STATUS.getCode(),
+                                    ErrorCode.FORBIDDEN_STATUS.getMsg())
+                    );
+                default -> response.getWriter().write(
+                            String.format("{\"code\":%d,\"msg\":\"%s\"}",
+                                    ErrorCode.FORBIDDEN.getCode(),
+                                    ErrorCode.FORBIDDEN.getMsg())
+                    );
+            }
         }
     }
 }
