@@ -327,8 +327,6 @@ public class TeamMemberServiceImpl implements TeamMemberService {
 
         teamMemberRepository.save(teamMember);
 
-        realTimeNotify(organizerId);
-
         return mapToTeamMemberResponse(teamMember);
     }
 

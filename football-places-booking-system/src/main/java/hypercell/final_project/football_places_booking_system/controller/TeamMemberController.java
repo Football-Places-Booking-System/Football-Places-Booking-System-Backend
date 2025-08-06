@@ -148,6 +148,9 @@ public class TeamMemberController {
             @PathVariable UUID organizerId,
             @RequestParam TeamStatus status) throws AppException {
         teamMemberService.respondToJoinRequest(teamMemberId, status, organizerId);
+
+        teamMemberService.realTimeNotify(organizerId);
+        
         return ResponseEntity.status(HttpStatus.FOUND)
                 .location(URI.create("http://localhost:4200/dashboard/teams"))
                 .build();
