@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingResponseDTO;
@@ -97,6 +98,23 @@ public class MatchParticipantController {
                 .location(URI.create("http://localhost:4200/dashboard/matches"))
                 .build();
     }
+
+    @PostMapping("/join-as-organizer/{bookingMatchId}")
+//    public ResponseEntity<MatchPartResponseDTO> joinMatchAsOrganizer(
+    public ResponseEntity<Void> joinMatchAsOrganizer(
+            @PathVariable UUID bookingMatchId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws AppException {
+
+        User organizer = (User) userDetails;
+        MatchParticipant participant = matchParticipantService.joinMatchAsOrganizer(bookingMatchId, organizer.getId());
+//        return ResponseEntity.ok(MatchPartMapper.toResponseDTO(participant));
+        return ResponseEntity.status(HttpStatus.OK)
+                .build();
+    }
+
+
+
 
     /**
      *   Get participants for a match.
