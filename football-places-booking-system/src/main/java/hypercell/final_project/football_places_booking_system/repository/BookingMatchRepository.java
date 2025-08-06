@@ -18,8 +18,10 @@ public interface BookingMatchRepository extends JpaRepository<BookingMatch, UUID
 
     @Query("SELECT bm FROM BookingMatch bm " +
             "LEFT JOIN FETCH bm.team " +
-            "LEFT JOIN FETCH bm.place")
+            "LEFT JOIN FETCH bm.place " +
+            "LEFT JOIN FETCH bm.user") // ✅ added this line
     List<BookingMatch> findAllWithDetails();
+
 
     @Query("SELECT bm FROM BookingMatch bm " +
             "LEFT JOIN FETCH bm.team " +

@@ -92,6 +92,26 @@ public class BookingMatchServiceImpl implements BookingMatchService {
         return bookingMatchRepository.save(match);
     }
 
+    public void confirmBooking(UUID matchId, UUID userId) throws AppException {
+        if (matchId == null) {
+            throw new ValidationException(ErrorCode.INVALID_BOOKING_MATCH_ID);
+        }
+
+        BookingMatch match = getById(matchId);
+
+        if (!teamMemberService.isOrganizer(userId, match.getTeam().getId())) {
+            throw new ForbiddenActionException(ErrorCode.FORBIDDEN);
+        }
+
+        // Policy: Cannot cancel if less than 3 hours before start
+        if (match.getStartTime().isBefore(LocalDateTime.now().plusHours(3))) {
+            throw new ForbiddenActionException(ErrorCode.MATCH_CANNOT_BE_CANCELLED_NOW);
+        }
+
+        match.setStatus(MatchStatus.CONFIRMED);
+        bookingMatchRepository.save(match);
+    }
+
 
     public void cancelBooking(UUID matchId, UUID userId) throws AppException {
         if (matchId == null) {

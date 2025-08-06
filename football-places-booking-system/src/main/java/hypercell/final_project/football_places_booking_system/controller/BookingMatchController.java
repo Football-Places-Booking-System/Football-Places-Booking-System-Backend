@@ -59,6 +59,17 @@ public class BookingMatchController {
     }
 
     @PreAuthorize("@authService.is('ACTIVE')")
+    @PatchMapping("/confirm/{id}")
+    public ResponseEntity<String> confirm(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws AppException {
+        User currentUser = (User) userDetails;
+        bookingMatchService.confirmBooking(id, currentUser.getId());
+        return ResponseEntity.ok("Match confirmed");
+    }
+
+    @PreAuthorize("@authService.is('ACTIVE')")
     @PatchMapping("/cancel/{id}")
     public ResponseEntity<String> cancel(
             @PathVariable UUID id,

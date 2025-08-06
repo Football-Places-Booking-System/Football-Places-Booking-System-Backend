@@ -15,6 +15,7 @@ public class BookingMapper {
                 .endTime(match.getEndTime())
                 .status(match.getStatus())
                 .userId(match.getUser().getId())
+                .userName(match.getUser().getUserName())
                 .teamId(match.getTeam().getId())
                 .teamName(match.getTeam().getName())
                 .placeId(match.getPlace().getId())

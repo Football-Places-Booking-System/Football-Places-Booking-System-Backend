@@ -13,6 +13,7 @@ public record BookingResponseDTO(
         LocalDateTime endTime,
         MatchStatus status,
         UUID userId,
+        String userName,
         UUID teamId,
         String teamName,
         UUID placeId,
