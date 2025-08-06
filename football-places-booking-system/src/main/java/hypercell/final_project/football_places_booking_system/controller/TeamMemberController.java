@@ -4,6 +4,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import hypercell.final_project.football_places_booking_system.exception.ForbiddenActionException;
+import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -157,12 +159,17 @@ public class TeamMemberController {
         return ResponseEntity.ok(teamMemberService.getPendingJoinRequests(teamId));
     }
 
-    @PreAuthorize("@authService.is('ACTIVE') and @authService.hasTeamRole(#teamId, 'ORGANIZER')")
+    @PreAuthorize("@authService.is('ACTIVE')")
+//    @PreAuthorize("@authService.is('ACTIVE') and @authService.hasTeamRole(#id, 'ORGANIZER')")
+//    @PreAuthorize("@authService.is('ACTIVE') and @teamMemberService.isOrganizer(userDetails(User).getId(), #id) ")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTeamMember(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) throws AppException {
         User requester = (User) userDetails;
+//        if (!teamMemberService.isOrganizer(requester.getId(), id)){
+//            throw new ForbiddenActionException(ErrorCode.FORBIDDEN_ROLE);
+//        }
         teamMemberService.deleteTeamMember(id, requester.getId());
         return ResponseEntity.noContent().build();
     }

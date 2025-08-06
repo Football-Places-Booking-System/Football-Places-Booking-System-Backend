@@ -28,12 +28,10 @@ public class TeamMember extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference  // This prevents infinite recursion
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "team_id", nullable = false)
-    @JsonBackReference  // This prevents infinite recursion
     private Team team;
 
     @ManyToOne
