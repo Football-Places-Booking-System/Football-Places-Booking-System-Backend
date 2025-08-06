@@ -17,6 +17,7 @@ import hypercell.final_project.football_places_booking_system.exception.NoConten
 import hypercell.final_project.football_places_booking_system.exception.NoDataException;
 import hypercell.final_project.football_places_booking_system.exception.NotFoundException;
 import hypercell.final_project.football_places_booking_system.exception.ValidationException;
+import hypercell.final_project.football_places_booking_system.model.db.Request;
 import hypercell.final_project.football_places_booking_system.model.db.Team;
 import hypercell.final_project.football_places_booking_system.model.db.TeamMember;
 import hypercell.final_project.football_places_booking_system.model.db.User;
@@ -27,6 +28,7 @@ import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS
 import hypercell.final_project.football_places_booking_system.model.enums.ErrorCode;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamRole;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
+import hypercell.final_project.football_places_booking_system.repository.RequestRepository;
 import hypercell.final_project.football_places_booking_system.repository.TeamMemberRepository;
 import hypercell.final_project.football_places_booking_system.repository.TeamRepository;
 import hypercell.final_project.football_places_booking_system.repository.UserRepository;
@@ -38,9 +40,9 @@ import lombok.AllArgsConstructor;
 public class TeamServiceImpl implements TeamService {
 
     private final TeamRepository teamRepository;
-
     private final TeamMemberRepository teamMemberRepository;
     private final UserRepository userRepository;
+    private final RequestRepository requestRepository;
 
     @Override
     public TeamResponse createTeam(TeamCreationRequest teamCreationRequest, UUID creatorid) throws AppException {
@@ -139,6 +141,26 @@ public class TeamServiceImpl implements TeamService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.TEAM_NOT_FOUND));
 
+        // Get all team members for this team
+        List<TeamMember> teamMembers = teamMemberRepository.getTeamMemberByTeam(team);
+        
+        // Extract team member IDs
+        List<UUID> teamMemberIds = teamMembers.stream()
+                .map(TeamMember::getId)
+                .collect(Collectors.toList());
+        
+        // Delete all requests that have these team member IDs in the joker_id column
+        if (!teamMemberIds.isEmpty()) {
+            teamMemberIds.forEach(teamMemberId -> {
+                // Find requests by joker_id (which stores team member ID)
+                Request request = requestRepository.findByJokerId(teamMemberId);
+                if (request != null) {
+                    requestRepository.delete(request);
+                }
+            });
+        }
+
+        // Now delete the team (this will cascade delete team members due to relationship)
         teamRepository.delete(team);
 
         return ResponseEntity.ok(new ResponseDTO(teamId, "Team deleted successfully"));
@@ -166,9 +188,9 @@ public class TeamServiceImpl implements TeamService {
                 .map(teamMember -> teamMember.getTeam().getId())
                 .collect(Collectors.toList());
         
-        Page<Team> teams = teamRepository.findAll(Specification.where((root, query, cb) ->
+        Page<Team> teams = teamRepository.findAll((root, query, cb) ->
                 cb.not(root.get("id").in(userTeamIds))
-        ), pageable);
+        , pageable);
 
         if (teams.isEmpty()) {
             throw new NoContentException(ErrorCode.NO_CONTENT);

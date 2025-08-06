@@ -23,6 +23,7 @@ import hypercell.final_project.football_places_booking_system.exception.AppExcep
 import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberCreationRequest;
+import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberInviteResponse;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberResponse;
 import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.TeamMemberUpdateRequest;
 import hypercell.final_project.football_places_booking_system.model.enums.TeamStatus;
@@ -89,6 +90,9 @@ public class TeamMemberController {
             @Valid @RequestBody InvitationRequest request,
             @AuthenticationPrincipal UserDetails userDetails) throws AppException {
         TeamMemberResponse response = teamMemberService.inviteByEmail(request.email(), teamId, (User) userDetails);
+
+        teamMemberService.realTimeNotify(response.userId());
+
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -108,7 +112,10 @@ public class TeamMemberController {
             @PathVariable UUID teamMemberId,
             @RequestParam("status") TeamStatus request) 
             throws AppException {
-        teamMemberService.respondToInvitation(teamMemberId, request);
+        TeamMemberInviteResponse response = teamMemberService.respondToInvitation(teamMemberId, request);
+
+        teamMemberService.realTimeNotify(response.userId());
+
         return ResponseEntity.status(HttpStatus.FOUND)
                 .location(URI.create("http://localhost:4200/dashboard/teams"))
                 .build();
@@ -120,6 +127,7 @@ public class TeamMemberController {
             @PathVariable UUID teamId,
             @AuthenticationPrincipal UserDetails userDetails) throws AppException {
         TeamMemberResponse response = teamMemberService.requestToJoinTeam(teamId, (User) userDetails);
+
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -140,6 +148,9 @@ public class TeamMemberController {
             @PathVariable UUID organizerId,
             @RequestParam TeamStatus status) throws AppException {
         teamMemberService.respondToJoinRequest(teamMemberId, status, organizerId);
+
+        teamMemberService.realTimeNotify(organizerId);
+        
         return ResponseEntity.status(HttpStatus.FOUND)
                 .location(URI.create("http://localhost:4200/dashboard/teams"))
                 .build();
@@ -157,12 +168,17 @@ public class TeamMemberController {
         return ResponseEntity.ok(teamMemberService.getPendingJoinRequests(teamId));
     }
 
-    @PreAuthorize("@authService.is('ACTIVE') and @authService.hasTeamRole(#teamId, 'ORGANIZER')")
+    @PreAuthorize("@authService.is('ACTIVE')")
+//    @PreAuthorize("@authService.is('ACTIVE') and @authService.hasTeamRole(#id, 'ORGANIZER')")
+//    @PreAuthorize("@authService.is('ACTIVE') and @teamMemberService.isOrganizer(userDetails(User).getId(), #id) ")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTeamMember(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) throws AppException {
         User requester = (User) userDetails;
+//        if (!teamMemberService.isOrganizer(requester.getId(), id)){
+//            throw new ForbiddenActionException(ErrorCode.FORBIDDEN_ROLE);
+//        }
         teamMemberService.deleteTeamMember(id, requester.getId());
         return ResponseEntity.noContent().build();
     }

@@ -15,6 +15,7 @@ import hypercell.final_project.football_places_booking_system.model.enums.TeamSt
 
 
 public interface TeamMemberService {
+    void realTimeNotify(UUID receiverId);
     TeamMemberResponse createTeamMember(TeamMemberCreationRequest request, UUID creatorid) throws NotFoundException;
     List<TeamMemberResponse>getTeamMembersByTeam(UUID teamId);
     List<TeamMemberResponse> getTeamMembersByUserId(UUID userId);

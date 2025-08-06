@@ -38,6 +38,10 @@ public class Team extends BaseEntity {
     @Builder.Default
     private List<TeamMember> teamMembers = new ArrayList<>();
 
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<BookingMatch> bookingMatches = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "creator_id", nullable = true)
     private User creator;
