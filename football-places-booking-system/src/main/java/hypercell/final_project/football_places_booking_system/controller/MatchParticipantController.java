@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.exception.ForbiddenActionException;
-import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
+import hypercell.final_project.football_places_booking_system.model.db.User;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartMapper;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartResponseDTO;
@@ -70,7 +70,7 @@ public class MatchParticipantController {
 
         var participant = matchParticipantService.inviteParticipant(dto, bookingMatchId);
 
-        messagingTemplate.convertAndSend("/topic/notification/" + participant.getUser().getId(), (Object) null);
+        messagingTemplate.convertAndSend("/topic/notification/" + participant.getUser().getId(), "");
 
         return new ResponseEntity<>(MatchPartMapper.toResponseDTO(participant), HttpStatus.CREATED);
     }
@@ -93,7 +93,7 @@ public class MatchParticipantController {
     ) throws AppException {
         var participant = matchParticipantService.respondToInvitation(id, status);
 
-        messagingTemplate.convertAndSend("/topic/notification/" + participant.getUser().getId(), (Object) null);
+        messagingTemplate.convertAndSend("/topic/notification/" + participant.getUser().getId(), "");
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 // change url

@@ -53,7 +53,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
 
     @Override
     public void realTimeNotify(UUID receiverId) {
-        messagingTemplate.convertAndSend("/topic/notification/" + receiverId, (Object) null);
+        messagingTemplate.convertAndSend("/topic/notification/" + receiverId, "");
     }
 
     @Override
