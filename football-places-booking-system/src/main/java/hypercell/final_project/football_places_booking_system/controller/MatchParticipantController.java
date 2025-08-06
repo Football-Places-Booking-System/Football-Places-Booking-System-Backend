@@ -4,21 +4,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-<<<<<<< HEAD
 import org.springframework.beans.factory.annotation.Autowired;
-=======
-import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
-<<<<<<< HEAD
-import org.springframework.beans.factory.annotation.Autowired;
-=======
-import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
-import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
-import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
-import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingMapper;
-import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingResponseDTO;
-import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.UserMatchResponseDTO;
-import hypercell.final_project.football_places_booking_system.model.dto.TeamDTOS.InvitationRequest;
->>>>>>> 134e696adbdac5c6d3fbeee762c8729b8b3b1e20
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -36,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import hypercell.final_project.football_places_booking_system.exception.AppException;
 import hypercell.final_project.football_places_booking_system.exception.ForbiddenActionException;
 import hypercell.final_project.football_places_booking_system.model.db.User;
+import hypercell.final_project.football_places_booking_system.model.db.MatchParticipant;
 import hypercell.final_project.football_places_booking_system.model.dto.BookingDTOs.BookingDetailRespDTO;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartMapper;
 import hypercell.final_project.football_places_booking_system.model.dto.MatchPartDTOs.MatchPartResponseDTO;
