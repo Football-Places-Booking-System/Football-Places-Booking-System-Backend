@@ -73,8 +73,8 @@ public class BookingMatchController {
 //        return ResponseEntity.ok("Match confirmed");
     }
 
-    @PreAuthorize("@authService.is('ACTIVE') and (@authService.hasTeamRole(#teamId, 'ORGANIZER') or hasRole('ADMIN'))")
-//    @PreAuthorize("@authService.is('ACTIVE')")
+//    @PreAuthorize("@authService.is('ACTIVE') and (@authService.hasTeamRole(#teamId, 'ORGANIZER') or hasRole('ADMIN'))")
+    @PreAuthorize("@authService.is('ACTIVE')")
     @PatchMapping("/cancel/{id}")
     public ResponseEntity<Void> cancel(
             @PathVariable UUID id,
