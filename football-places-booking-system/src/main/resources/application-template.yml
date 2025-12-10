@@ -10,8 +10,8 @@ spring:
     # Port 587 is the standard port for secure SMTP (Simple Mail Transfer Protocol) communication.
     # It is used for sending email messages securely using STARTTLS or TLS encryption.
     port: 587
-    username: football.booking.system@gmail.com
-    password: wyetyvnywgyhrkzn
+    username: username@gmail.com
+    password: password
     properties:
       mail:
         smtp:
